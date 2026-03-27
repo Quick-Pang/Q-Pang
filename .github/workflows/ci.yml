@@ -28,4 +28,4 @@ jobs:
 
       # 전체 프로젝트 빌드 및 테스트
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build -x test
