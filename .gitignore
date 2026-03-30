@@ -10,6 +10,8 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/resources/*.properties
 !**/src/test/resources/*.properties
+**/src/main/resources/application-local.yml
+**/src/main/resources/application-*.local.yml
 
 ### IntelliJ IDEA ###
 .idea/
@@ -27,7 +29,10 @@ Thumbs.db
 HELP.md
 .logs/
 *.log
+**/logs/
 
 ### Environment Variables ###
 .env
 .env.local
+.env.*
+!.env.example
