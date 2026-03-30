@@ -1,2 +1,4 @@
 rootProject.name = 'Q-Pang'
 include 'common'
+include 'eureka-server'
+include 'gateway-service'
