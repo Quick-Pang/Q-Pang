@@ -1,6 +1,13 @@
 spring:
   application:
     name: gateway-service
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=api/orders/**
 
 server:
   port: 18080
