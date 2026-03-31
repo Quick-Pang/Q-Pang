@@ -5,9 +5,10 @@ spring:
     gateway:
       routes:
         - id: order-service
-          uri: lb://ORDER-SERVICE
+          uri: lb://order-service
           predicates:
-            - Path=api/orders/**
+            - Path=/orders/**
+            
 
 server:
   port: 18080
