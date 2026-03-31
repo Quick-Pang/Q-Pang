@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -68,5 +70,23 @@ public class HubService {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
         hub.delete(userId);
+    }
+
+    @Transactional
+    public void initHubData(Long userId, List<HubCreateRequest> requests) {
+        if (hubRepository.count() > 0) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
+        for (HubCreateRequest req : requests) {
+            Hub hub = Hub.builder()
+                    .name(req.name())
+                    .address(req.address())
+                    .latitude(req.latitude())
+                    .longitude(req.longitude())
+                    .managerId(req.managerId())
+                    .build();
+
+            hubRepository.save(hub);
+        }
     }
 }

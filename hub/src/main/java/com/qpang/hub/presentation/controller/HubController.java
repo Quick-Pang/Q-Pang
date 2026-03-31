@@ -11,6 +11,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -47,5 +48,13 @@ public class HubController {
     public ResponseEntity<Void> deleteHub(@PathVariable(name = "hubId") UUID hubId) {
         hubService.deleteHub(hubId, 1L);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/init")
+    public ResponseEntity<String> initHubData(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody List<HubCreateRequest> requests) {
+        hubService.initHubData(userId, requests);
+        return ResponseEntity.ok("총 " + requests.size() + "건의 허브 데이터 삽입이 완료되었습니다.");
     }
 }
