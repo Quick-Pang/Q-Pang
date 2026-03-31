@@ -2,6 +2,7 @@ package com.qpang.hub.application.service;
 
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
+import com.qpang.hub.application.dto.HubInitCommand;
 import com.qpang.hub.domain.model.Hub;
 import com.qpang.hub.domain.repository.HubRepository;
 import com.qpang.hub.presentation.dto.HubCreateRequest;
@@ -73,19 +74,18 @@ public class HubService {
     }
 
     @Transactional
-    public void initHubData(Long userId, List<HubCreateRequest> requests) {
+    public void initHubData(Long userId, List<HubInitCommand> commands) {
         if (hubRepository.count() > 0) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
-        for (HubCreateRequest req : requests) {
+        for (HubInitCommand cmd : commands) {
             Hub hub = Hub.builder()
-                    .name(req.name())
-                    .address(req.address())
-                    .latitude(req.latitude())
-                    .longitude(req.longitude())
-                    .managerId(req.managerId())
+                    .name(cmd.name())
+                    .address(cmd.address())
+                    .latitude(cmd.latitude())
+                    .longitude(cmd.longitude())
+                    .managerId(cmd.managerId())
                     .build();
-
             hubRepository.save(hub);
         }
     }

@@ -1,5 +1,6 @@
 package com.qpang.hub.presentation.controller;
 
+import com.qpang.hub.application.dto.HubInitCommand;
 import com.qpang.hub.application.service.HubService;
 import com.qpang.hub.presentation.dto.HubCreateRequest;
 import com.qpang.hub.presentation.dto.HubResponse;
@@ -54,7 +55,10 @@ public class HubController {
     public ResponseEntity<String> initHubData(
             @RequestHeader("X-User-Id") Long userId,
             @RequestBody List<HubCreateRequest> requests) {
-        hubService.initHubData(userId, requests);
-        return ResponseEntity.ok("총 " + requests.size() + "건의 허브 데이터 삽입이 완료되었습니다.");
+        List<HubInitCommand> commands = requests.stream()
+                .map(HubCreateRequest::toCommand)
+                .toList();
+        hubService.initHubData(userId, commands);
+        return ResponseEntity.ok("총 " + commands.size() + "건의 허브 데이터 삽입 완료!");
     }
 }
