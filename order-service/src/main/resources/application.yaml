@@ -2,10 +2,24 @@ spring:
   application:
     name: order-service
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_db
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
 server:
   port: 18081
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:19090/eureka
+      defaultZone: http://localhost:19090/eureka/
