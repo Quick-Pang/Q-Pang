@@ -1,4 +1,4 @@
-package com.sparta.company.domain.entity;
+package com.sparta.company.domain.enums;
 
 public enum CompanyStatus {
     OPEN,

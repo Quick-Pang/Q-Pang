@@ -1,6 +1,8 @@
 package com.sparta.company.domain.entity;
 
 import com.qpang.common.entity.BaseUserEntity;
+import com.sparta.company.domain.enums.CompanyStatus;
+import com.sparta.company.domain.enums.CompanyType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.UUID;
