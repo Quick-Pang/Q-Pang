@@ -6,6 +6,7 @@ import com.qpang.company.domain.entity.Company;
 import com.qpang.company.domain.enums.CompanyStatus;
 import com.qpang.company.domain.enums.CompanyType;
 import com.qpang.company.repository.CompanyRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,14 +15,22 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
 
     public Company create(String name, CompanyType type, UUID hubId, String address, UUID managerUserId) {
-        return companyRepository.save(new Company(name, type, hubId, address, managerUserId));
+        return companyRepository.save(
+                Company.builder()
+                        .name(name)
+                        .type(type)
+                        .hubId(hubId)
+                        .address(address)
+                        .managerUserId(managerUserId)
+                        .build()
+        );
     }
-
     public List<Company> findAll() {
         return companyRepository.findAll()
                 .stream()
