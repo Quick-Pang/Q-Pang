@@ -1,5 +1,7 @@
 package com.qpang.hub.presentation.controller;
 
+import com.qpang.common.exception.CommonErrorCode;
+import com.qpang.common.exception.CustomException;
 import com.qpang.hub.application.dto.HubInitCommand;
 import com.qpang.hub.application.service.HubService;
 import com.qpang.hub.presentation.dto.HubCreateRequest;
@@ -55,10 +57,13 @@ public class HubController {
     public ResponseEntity<String> initHubData(
             @RequestHeader("X-User-Id") Long userId,
             @RequestBody List<HubCreateRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
         List<HubInitCommand> commands = requests.stream()
                 .map(HubCreateRequest::toCommand)
                 .toList();
         hubService.initHubData(userId, commands);
-        return ResponseEntity.ok("총 " + commands.size() + "건의 허브 데이터 삽입 완료!");
+        return ResponseEntity.ok("데이터 삽입 완료");
     }
 }

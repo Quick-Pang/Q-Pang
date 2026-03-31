@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -73,7 +74,7 @@ public class HubService {
         hub.delete(userId);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void initHubData(Long userId, List<HubInitCommand> commands) {
         if (hubRepository.count() > 0) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
