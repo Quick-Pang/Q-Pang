@@ -37,4 +37,22 @@ public class Company extends BaseUserEntity {
     @Column(name = "company_status", nullable = false)
     private CompanyStatus status;
 
+    public Company(String name, CompanyType type, UUID hubId, String address, UUID managerUserId) {
+        this.name = name;
+        this.type = type;
+        this.hubId = hubId;
+        this.address = address;
+        this.managerUserId = managerUserId;
+        this.status = CompanyStatus.OPEN;
+    }
+
+    public void update(String name, String address) {
+        this.name = name;
+        this.address = address;
+    }
+
+    public void changeStatus(CompanyStatus status) {
+        this.status = status;
+    }
+
 }
