@@ -1,4 +1,4 @@
-package com.sparta.company.dto;
+package com.qpang.company.dto;
 
 import lombok.Getter;
 

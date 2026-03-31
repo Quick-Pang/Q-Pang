@@ -1,10 +1,12 @@
-package com.sparta.company.domain.entity;
+package com.qpang.company.domain.entity;
 
 import com.qpang.common.entity.BaseUserEntity;
-import com.sparta.company.domain.enums.CompanyStatus;
-import com.sparta.company.domain.enums.CompanyType;
+import com.qpang.company.domain.enums.CompanyStatus;
+import com.qpang.company.domain.enums.CompanyType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
+
 import java.util.UUID;
 
 @Getter
@@ -14,8 +16,9 @@ import java.util.UUID;
 public class Company extends BaseUserEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "company_id")
-    private UUID id;
+    private UUID companyId;
 
     @Column(name = "company_name", nullable = false, length = 200)
     private String name;

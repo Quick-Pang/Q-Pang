@@ -1,6 +1,6 @@
-package com.sparta.company.repository;
+package com.qpang.company.repository;
 
-import com.sparta.company.domain.entity.Company;
+import com.qpang.company.domain.entity.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

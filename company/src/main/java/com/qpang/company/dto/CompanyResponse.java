@@ -1,8 +1,8 @@
-package com.sparta.company.dto;
+package com.qpang.company.dto;
 
-import com.sparta.company.domain.entity.Company;
-import com.sparta.company.domain.enums.CompanyStatus;
-import com.sparta.company.domain.enums.CompanyType;
+import com.qpang.company.domain.entity.Company;
+import com.qpang.company.domain.enums.CompanyStatus;
+import com.qpang.company.domain.enums.CompanyType;
 import lombok.Builder;
 import lombok.Getter;
 

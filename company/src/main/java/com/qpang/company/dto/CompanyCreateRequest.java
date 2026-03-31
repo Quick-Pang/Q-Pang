@@ -1,11 +1,13 @@
-package com.sparta.company.dto;
+package com.qpang.company.dto;
 
-import com.sparta.company.domain.enums.CompanyType;
+import com.qpang.company.domain.enums.CompanyType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor
 public class CompanyCreateRequest {
 
     private String name;

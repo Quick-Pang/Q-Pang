@@ -1,4 +1,4 @@
-package com.sparta.company.domain.enums;
+package com.qpang.company.domain.enums;
 
 public enum CompanyStatus {
     OPEN,

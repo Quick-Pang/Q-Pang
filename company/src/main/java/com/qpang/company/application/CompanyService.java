@@ -1,11 +1,11 @@
-package com.sparta.company.application;
+package com.qpang.company.application;
 
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
-import com.sparta.company.domain.entity.Company;
-import com.sparta.company.domain.enums.CompanyStatus;
-import com.sparta.company.domain.enums.CompanyType;
-import com.sparta.company.repository.CompanyRepository;
+import com.qpang.company.domain.entity.Company;
+import com.qpang.company.domain.enums.CompanyStatus;
+import com.qpang.company.domain.enums.CompanyType;
+import com.qpang.company.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
