@@ -68,11 +68,20 @@ public class ProductService {
             throw new CustomException(ProductErrorCode.INVALID_STOCK_QUANTITY);
         }
         Product product = findById(id);
+        if (product.getDeletedAt() != null) {
+            throw new CustomException(ProductErrorCode.PRODUCT_ALREADY_DELETED);
+        }
         product.increaseStock(quantity);
     }
 
     public void decreaseStock(UUID id, int quantity) {
+        if (quantity < 1) {
+            throw new CustomException(ProductErrorCode.INVALID_STOCK_QUANTITY);
+        }
         Product product = findById(id);
+        if (product.getDeletedAt() != null) {
+            throw new CustomException(ProductErrorCode.PRODUCT_ALREADY_DELETED);
+        }
         product.decreaseStock(quantity);
     }
 
