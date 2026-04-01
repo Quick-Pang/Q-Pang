@@ -1,7 +1,10 @@
 package com.qpang.product.domain.entity;
 
 import com.qpang.common.entity.BaseUserEntity;
+import com.qpang.common.exception.CommonErrorCode;
+import com.qpang.common.exception.CustomException;
 import com.qpang.product.domain.enums.ProductStatus;
+import com.qpang.product.exception.ProductErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,10 +48,16 @@ public class Product extends BaseUserEntity {
     }
 
     public void update(String name) {
+        if (name == null || name.isBlank()) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
         this.name = name;
     }
 
     public void changeStatus(ProductStatus status) {
+        if (status == null) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
         this.status = status;
     }
 
@@ -58,7 +67,7 @@ public class Product extends BaseUserEntity {
 
     public void decreaseStock(int quantity) {
         if (this.stockQuantity < quantity) {
-            throw new IllegalArgumentException("재고가 부족합니다.");
+            throw new CustomException(ProductErrorCode.PRODUCT_OUT_OF_STOCK);
         }
         this.stockQuantity -= quantity;
     }

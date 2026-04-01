@@ -1,6 +1,8 @@
 package com.qpang.company.domain.entity;
 
 import com.qpang.common.entity.BaseUserEntity;
+import com.qpang.common.exception.CommonErrorCode;
+import com.qpang.common.exception.CustomException;
 import com.qpang.company.domain.enums.CompanyStatus;
 import com.qpang.company.domain.enums.CompanyType;
 import jakarta.persistence.*;
@@ -51,11 +53,20 @@ public class Company extends BaseUserEntity {
     }
 
     public void update(String name, String address) {
+        if (name == null || name.isBlank()) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
+        if (address == null || address.isBlank()) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
         this.name = name;
         this.address = address;
     }
 
     public void changeStatus(CompanyStatus status) {
+        if (status == null) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
         this.status = status;
     }
 
