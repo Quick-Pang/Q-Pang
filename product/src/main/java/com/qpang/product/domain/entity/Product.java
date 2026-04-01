@@ -69,5 +69,10 @@ public class Product extends BaseUserEntity {
             throw new CustomException(ProductErrorCode.PRODUCT_OUT_OF_STOCK);
         }
         this.stockQuantity -= quantity;
+
+        // 재고가 0이 되면 자동으로 OUT_OF_STOCK으로 변경
+        if (this.stockQuantity == 0) {
+            this.status = ProductStatus.OUT_OF_STOCK;
+        }
     }
 }
