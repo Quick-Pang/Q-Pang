@@ -1,4 +1,5 @@
 package com.qpang.company.presentation;
+import com.qpang.common.response.APIResponse;
 import com.qpang.company.application.CompanyService;
 import com.qpang.company.domain.entity.Company;
 import com.qpang.company.dto.CompanyCreateRequest;
@@ -7,6 +8,8 @@ import com.qpang.company.dto.CompanyStatusUpdateRequest;
 import com.qpang.company.dto.CompanyUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +25,7 @@ public class CompanyController {
 
     // 업체 생성
     @PostMapping
-    public CompanyResponse create(@Valid @RequestBody CompanyCreateRequest request) {
+    public ResponseEntity<APIResponse<CompanyResponse>> create(@Valid @RequestBody CompanyCreateRequest request) {
         Company company = companyService.create(
                 request.getName(),
                 request.getType(),
@@ -30,55 +33,47 @@ public class CompanyController {
                 request.getAddress(),
                 request.getManagerUserId()
         );
-
-        return CompanyResponse.from(company);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(APIResponse.success(CompanyResponse.from(company)));
     }
 
     // 전체 조회
     @GetMapping
-    public List<CompanyResponse> findAll() {
-        return companyService.findAll()
+    public ResponseEntity<APIResponse<List<CompanyResponse>>> findAll() {
+        List<CompanyResponse> responses = companyService.findAll()
                 .stream()
                 .map(CompanyResponse::from)
                 .toList();
+        return ResponseEntity.ok(APIResponse.success(responses));
     }
 
-    // 허브별 조회
-    /*@GetMapping("/hub/{hubId}")
-    public List<CompanyResponse> findByHub(@PathVariable UUID hubId) {
-        return companyService.findByHub(hubId)
-                .stream()
-                .map(CompanyResponse::from)
-                .toList();
-    }
-*/
-
-    //단건 조회
+    // 단건 조회
     @GetMapping("/{id}")
-    public CompanyResponse findById(@PathVariable UUID id) {
-        return CompanyResponse.from(companyService.findById(id));
+    public ResponseEntity<APIResponse<CompanyResponse>> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(APIResponse.success(CompanyResponse.from(companyService.findById(id))));
     }
 
     // 수정
     @PatchMapping("/{id}")
-    public void update(@PathVariable UUID id,
-                       @RequestBody CompanyUpdateRequest request) {
-
+    public ResponseEntity<Void> update(@PathVariable UUID id,
+                                       @Valid @RequestBody CompanyUpdateRequest request) {
         companyService.update(id, request.getName(), request.getAddress());
+        return ResponseEntity.noContent().build();
     }
 
     // 상태 변경
     @PatchMapping("/{id}/status")
-    public void changeStatus(@PathVariable UUID id,
-                             @RequestBody CompanyStatusUpdateRequest request) {
-
+    public ResponseEntity<Void> changeStatus(@PathVariable UUID id,
+                                             @Valid @RequestBody CompanyStatusUpdateRequest request) {
         companyService.changeStatus(id, request.getStatus());
+        return ResponseEntity.noContent().build();
     }
-    //삭제 (soft delete)
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable UUID id,
-                       @RequestParam Long userId) {
 
+    // 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id,
+                                       @RequestParam Long userId) {
         companyService.delete(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }
