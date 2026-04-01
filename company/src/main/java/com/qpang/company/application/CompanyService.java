@@ -45,6 +45,11 @@ public class CompanyService {
                 .orElseThrow(() -> new CustomException(CompanyErrorCode.COMPANY_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
+    public List<Company> findAllByHubId(UUID hubId) {
+        return companyRepository.findAllByHubIdAndDeletedAtIsNull(hubId);
+    }
+
     public void update(UUID id, String name, String address) {
         if (name == null || name.isBlank()) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);

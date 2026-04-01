@@ -37,15 +37,25 @@ public class CompanyController {
                 .body(APIResponse.success(CompanyResponse.from(company)));
     }
 
-    // 전체 조회
+    // 전체 조회 및 허브 별 조회
     @GetMapping
-    public ResponseEntity<APIResponse<List<CompanyResponse>>> findAll() {
-        List<CompanyResponse> responses = companyService.findAll()
-                .stream()
-                .map(CompanyResponse::from)
-                .toList();
+    public ResponseEntity<APIResponse<List<CompanyResponse>>> findAll(
+            @RequestParam(required = false) UUID hubId) {
+        List<CompanyResponse> responses;
+        if (hubId != null) {
+            responses = companyService.findAllByHubId(hubId)
+                    .stream()
+                    .map(CompanyResponse::from)
+                    .toList();
+        } else {
+            responses = companyService.findAll()
+                    .stream()
+                    .map(CompanyResponse::from)
+                    .toList();
+        }
         return ResponseEntity.ok(APIResponse.success(responses));
     }
+
 
     // 단건 조회
     @GetMapping("/{id}")
