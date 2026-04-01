@@ -33,10 +33,12 @@ public class CompanyService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<Company> findAll() {
         return companyRepository.findAllByDeletedAtIsNull();
     }
 
+    @Transactional(readOnly = true)
     public Company findById(UUID id) {
         return companyRepository.findById(id)
                 .filter(c -> c.getDeletedAt() == null)
