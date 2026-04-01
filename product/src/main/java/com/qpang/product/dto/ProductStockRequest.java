@@ -11,5 +11,5 @@ public class ProductStockRequest {
 
     @NotNull
     @Min(1)
-    private int quantity;
+    private Integer quantity;
 }
