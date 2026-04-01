@@ -15,6 +15,11 @@ allprojects {
     repositories {
         mavenCentral()
     }
+
+    // IDE(VS Code/IntelliJ) 동기화 시 Kotlin DSL 태스크를 찾으려는 오류 방지
+    if (!tasks.names.contains('prepareKotlinBuildScriptModel')) {
+        tasks.register('prepareKotlinBuildScriptModel') {}
+    }
 }
 
 subprojects {
