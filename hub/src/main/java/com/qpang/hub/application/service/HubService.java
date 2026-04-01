@@ -30,7 +30,7 @@ public class HubService {
                 .map(HubResponseDto::from);
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public HubResponseDto createHub(Long userId, HubCreateCommand command) {
         Hub hub = Hub.builder()
                 .name(command.name())
@@ -39,7 +39,6 @@ public class HubService {
                 .longitude(command.longitude())
                 .managerId(command.managerId())
                 .build();
-
         Hub savedHub = hubRepository.save(hub);
         return HubResponseDto.from(savedHub);
     }
@@ -75,12 +74,11 @@ public class HubService {
         hub.delete(userId);
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public void initHubData(Long userId, List<HubInitCommand> commands) {
         if (hubRepository.count() > 0) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
-
         for (HubInitCommand cmd : commands) {
             Hub hub = Hub.builder()
                     .name(cmd.name())
