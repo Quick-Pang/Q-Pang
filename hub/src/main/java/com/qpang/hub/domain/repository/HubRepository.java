@@ -10,5 +10,6 @@ public interface HubRepository {
     Hub save(Hub hub);
     Optional<Hub> findById(UUID id);
     Page<Hub> findAll(Pageable pageable);
-    void delete(Hub hub);
+    //void delete(Hub hub);
+    long count();
 }
