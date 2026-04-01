@@ -52,12 +52,28 @@ public class Product extends BaseUserEntity {
         }
         this.name = name;
     }
-
-    public void changeStatus(ProductStatus status) {
-        if (status == null) {
+    public void changeStatus(ProductStatus newStatus) {
+        if (newStatus == null) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
-        this.status = status;
+
+        // 단종은 되돌릴 수 없음
+        if (this.status == ProductStatus.DISCONTINUED) {
+            throw new CustomException(ProductErrorCode.INVALID_STATUS_TRANSITION);
+        }
+
+        // 재고가 있는데 품절/단종으로 변경 불가
+        if (this.stockQuantity > 0 &&
+                (newStatus == ProductStatus.OUT_OF_STOCK || newStatus == ProductStatus.DISCONTINUED)) {
+            throw new CustomException(ProductErrorCode.CANNOT_CHANGE_STATUS_WITH_STOCK);
+        }
+
+        // 재고가 없는데 판매중으로 변경 불가
+        if (this.stockQuantity == 0 && newStatus == ProductStatus.AVAILABLE) {
+            throw new CustomException(ProductErrorCode.CANNOT_CHANGE_STATUS_WITHOUT_STOCK);
+        }
+
+        this.status = newStatus;
     }
 
     public void increaseStock(int quantity) {
