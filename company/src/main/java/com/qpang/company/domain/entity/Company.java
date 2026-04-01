@@ -18,6 +18,7 @@ import java.util.UUID;
 public class Company extends BaseUserEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "company_id", updatable = false, nullable = false)
     private UUID id;
 
@@ -43,7 +44,6 @@ public class Company extends BaseUserEntity {
 
     @Builder
     public Company(String name, CompanyType type, UUID hubId, String address, UUID managerUserId) {
-        this.id = UUID.randomUUID(); // 이 줄 추가
         this.name = name;
         this.type = type;
         this.hubId = hubId;
