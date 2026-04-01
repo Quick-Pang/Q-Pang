@@ -4,3 +4,6 @@ include 'eureka-server'
 include 'hub'
 include 'gateway-service'
 include 'user-service'
+include 'company'
+include 'order-service'
+
