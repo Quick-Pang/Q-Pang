@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
 
     List<Company> findByHubId(UUID hubId);
+    List<Company> findAllByDeletedAtIsNull();
 }
