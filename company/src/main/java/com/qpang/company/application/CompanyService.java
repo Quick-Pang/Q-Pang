@@ -6,7 +6,7 @@ import com.qpang.company.domain.entity.Company;
 import com.qpang.company.domain.enums.CompanyStatus;
 import com.qpang.company.domain.enums.CompanyType;
 import com.qpang.company.repository.CompanyRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +31,9 @@ public class CompanyService {
                         .build()
         );
     }
+
     public List<Company> findAll() {
-        return companyRepository.findAll()
-                .stream()
-                .filter(c -> c.getDeletedAt() == null)
-                .toList();
+        return companyRepository.findAllByDeletedAtIsNull();
     }
 
     public Company findById(UUID id) {

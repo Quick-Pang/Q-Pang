@@ -5,6 +5,7 @@ import com.qpang.company.dto.CompanyCreateRequest;
 import com.qpang.company.dto.CompanyResponse;
 import com.qpang.company.dto.CompanyStatusUpdateRequest;
 import com.qpang.company.dto.CompanyUpdateRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class CompanyController {
 
     // 업체 생성
     @PostMapping
-    public CompanyResponse create(@RequestBody CompanyCreateRequest request) {
+    public CompanyResponse create(@Valid @RequestBody CompanyCreateRequest request) {
         Company company = companyService.create(
                 request.getName(),
                 request.getType(),
