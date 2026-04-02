@@ -1,4 +1,4 @@
-package com.qpang.orderservice.domain.order.entity;
+package com.qpang.orderservice.domain.entity;
 
 import java.util.UUID;
 

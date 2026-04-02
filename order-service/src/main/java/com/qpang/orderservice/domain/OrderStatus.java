@@ -1,4 +1,4 @@
-package com.qpang.orderservice.domain.order;
+package com.qpang.orderservice.domain;
 
     public enum OrderStatus {
         CREATED,

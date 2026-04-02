@@ -1,4 +1,4 @@
-package com.qpang.orderservice.domain.order.entity;
+package com.qpang.orderservice.domain.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.UUID;
 import com.qpang.common.entity.BaseEntity;
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
-import com.qpang.orderservice.domain.order.OrderStatus;
+import com.qpang.orderservice.domain.OrderStatus;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

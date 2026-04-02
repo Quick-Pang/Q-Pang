@@ -1,12 +1,12 @@
-package com.qpang.orderservice.application.order;
+package com.qpang.orderservice.application;
 
 import org.springframework.transaction.annotation.Transactional;
 
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
-import com.qpang.orderservice.domain.order.OrderStatus;
-import com.qpang.orderservice.domain.order.entity.Order;
-import com.qpang.orderservice.domain.order.repository.OrderRepository;
+import com.qpang.orderservice.domain.OrderStatus;
+import com.qpang.orderservice.domain.entity.Order;
+import com.qpang.orderservice.domain.repository.OrderRepository;
 import com.qpang.orderservice.presentation.dto.request.CreateOrderRequest;
 import com.qpang.orderservice.presentation.dto.response.OrderResponse;
 import com.qpang.orderservice.presentation.dto.response.OrderSummaryResponse;

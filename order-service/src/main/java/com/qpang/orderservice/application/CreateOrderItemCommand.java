@@ -1,4 +1,4 @@
-package com.qpang.orderservice.application.order;
+package com.qpang.orderservice.application;
 
 import java.util.UUID;
 

@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.qpang.orderservice.domain.order.OrderStatus;
-import com.qpang.orderservice.application.order.OrderService;
+import com.qpang.orderservice.application.OrderService;
+import com.qpang.orderservice.domain.OrderStatus;
 import com.qpang.orderservice.presentation.dto.request.ChangeOrderStatusRequest;
 import com.qpang.orderservice.presentation.dto.request.CreateOrderRequest;
 import com.qpang.orderservice.presentation.dto.response.OrderResponse;

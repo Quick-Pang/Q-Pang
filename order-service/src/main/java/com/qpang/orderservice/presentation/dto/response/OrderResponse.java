@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.qpang.orderservice.domain.order.OrderStatus;
-import com.qpang.orderservice.domain.order.entity.Order;
+import com.qpang.orderservice.domain.OrderStatus;
+import com.qpang.orderservice.domain.entity.Order;
 
 public record OrderResponse(
     UUID orderId, 
