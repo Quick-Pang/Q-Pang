@@ -12,8 +12,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ProductCreateRequest {
 
-    @NotBlank
-    @Size(max = 200)
+    @NotBlank(message = "상품명은 필수 입력값입니다.")
+    @Size(max = 200, message = "상품명은 200자 이하입니다.")
     private String name;
 
     @NotNull
