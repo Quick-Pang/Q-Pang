@@ -7,6 +7,10 @@ import com.qpang.company.domain.enums.CompanyStatus;
 import com.qpang.company.domain.enums.CompanyType;
 import com.qpang.company.exception.CompanyErrorCode;
 import com.qpang.company.repository.CompanyRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,11 +38,6 @@ public class CompanyService {
     }
 
     @Transactional(readOnly = true)
-    public List<Company> findAll() {
-        return companyRepository.findAllByDeletedAtIsNull();
-    }
-
-    @Transactional(readOnly = true)
     public Company findById(UUID id) {
         return companyRepository.findById(id)
                 .filter(c -> c.getDeletedAt() == null)
@@ -46,8 +45,21 @@ public class CompanyService {
     }
 
     @Transactional(readOnly = true)
-    public List<Company> findAllByHubId(UUID hubId) {
-        return companyRepository.findAllByHubIdAndDeletedAtIsNull(hubId);
+    public Page<Company> search(UUID hubId, String name, int page, int size, String sortBy) {
+
+        // 페이징 단위 기본 10, 30이나 50으로 볼 수 있음
+        if (!List.of(10, 30, 50).contains(size)) {
+            size = 10;
+        }
+
+        // 정렬 기준
+        Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        if (hubId != null) {
+            return companyRepository.findAllByHubIdAndNameContainingAndDeletedAtIsNull(hubId, name, pageable);
+        }
+        return companyRepository.findAllByNameContainingAndDeletedAtIsNull(name, pageable);
     }
 
     public void update(UUID id, String name, String address) {
