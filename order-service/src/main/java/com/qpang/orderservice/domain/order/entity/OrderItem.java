@@ -37,7 +37,7 @@ public class OrderItem extends BaseEntity{
     @Column(name = "deleted_by")
     private UUID deletedBy;
 
-    public static OrderItem create(Order order, UUID productId, Integer quantity, UUID createdBy) {
+    static OrderItem create(Order order, UUID productId, Integer quantity, UUID createdBy) {
         if(quantity <= 0) {
             throw new IllegalArgumentException("");
         }
