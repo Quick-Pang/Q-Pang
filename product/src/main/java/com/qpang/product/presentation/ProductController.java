@@ -5,6 +5,7 @@ import com.qpang.product.application.ProductService;
 import com.qpang.product.domain.entity.Product;
 import com.qpang.product.dto.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,19 +35,16 @@ public class ProductController {
 
     // 전체/업체별 조회
     @GetMapping
-    public ResponseEntity<APIResponse<List<ProductResponse>>> findAll(@RequestParam(required = false) UUID companyId) {
-        List<ProductResponse> responses;
-        if (companyId != null) {
-            responses = productService.findAllByCompanyId(companyId)
-                    .stream()
-                    .map(ProductResponse::from)
-                    .toList();
-        } else {
-            responses = productService.findAll()
-                    .stream()
-                    .map(ProductResponse::from)
-                    .toList();
-        }
+    public ResponseEntity<APIResponse<Page<ProductResponse>>> findAll(
+            @RequestParam(required = false) UUID companyId,
+            @RequestParam(required = false, defaultValue = "") String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy) {
+
+        Page<ProductResponse> responses = productService.search(companyId, name, page, size, sortBy)
+                .map(ProductResponse::from);
+
         return ResponseEntity.ok(APIResponse.success(responses));
     }
 

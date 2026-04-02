@@ -7,6 +7,10 @@ import com.qpang.product.domain.enums.ProductStatus;
 import com.qpang.product.exception.ProductErrorCode;
 import com.qpang.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,20 +35,22 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> findAll() {
-        return productRepository.findAllByDeletedAtIsNull();
-    }
-
-    @Transactional(readOnly = true)
-    public List<Product> findAllByCompanyId(UUID companyId) {
-        return productRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId);
-    }
-
-    @Transactional(readOnly = true)
     public Product findById(UUID id) {
         return productRepository.findById(id)
                 .filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Product> search(UUID companyId, String name, int page, int size, String sortBy) {
+        size = List.of(10, 30, 50).contains(size) ? size : 10;
+        Sort sort = Sort.by(Sort.Direction.DESC, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        if (companyId != null) {
+            return productRepository.findByCompanyIdAndNameContainingAndDeletedAtIsNull(companyId, name, pageable);
+        }
+        return productRepository.findByNameContainingAndDeletedAtIsNull(name, pageable);
     }
 
     public void update(UUID id, String name) {
