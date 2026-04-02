@@ -41,4 +41,40 @@ public class Delivery extends BaseUserEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_status")
     private DeliveryStatus deliveryStatus = DeliveryStatus.WAITING_AT_HUB;
+
+    private Delivery(
+            UUID orderId,
+            UUID sourceHubId,
+            UUID destHubId,
+            String deliveryAddress,
+            String receiverName,
+            String receiverSlackId
+    ) {
+        this.orderId = orderId;
+        this.sourceHubId = sourceHubId;
+        this.destHubId = destHubId;
+        this.deliveryAddress = deliveryAddress;
+        this.receiverName = receiverName;
+        this.receiverSlackId = receiverSlackId;
+        this.deliveryStatus = DeliveryStatus.WAITING_AT_HUB;
+    }
+
+    public static Delivery create(
+            UUID orderId,
+            UUID sourceHubId,
+            UUID destHubId,
+            String deliveryAddress,
+            String receiverName,
+            String receiverSlackId
+    ) {
+        return new Delivery(
+                orderId,
+                sourceHubId,
+                destHubId,
+                deliveryAddress,
+                receiverName,
+                receiverSlackId
+        );
+
+    }
 }
