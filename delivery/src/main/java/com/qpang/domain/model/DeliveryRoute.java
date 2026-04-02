@@ -85,4 +85,8 @@ public class DeliveryRoute extends BaseUserEntity {
                 estimatedTime
         );
     }
+
+    public void updateStatus(DeliveryRouteStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
 }

@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @MappedSuperclass
@@ -17,15 +18,15 @@ public abstract class BaseUserEntity extends BaseEntity {
 
     @CreatedBy
     @Column(updatable = false)
-    protected Long createdBy;
+    protected UUID createdBy;
 
     @LastModifiedBy
-    protected Long updatedBy;
+    protected UUID updatedBy;
 
-    protected Long deletedBy;
+    protected UUID deletedBy;
 
     // soft delete
-    public void delete(Long userId) {
+    public void delete(UUID userId) {
         this.deletedBy = userId;
         this.deletedAt = LocalDateTime.now();
     }

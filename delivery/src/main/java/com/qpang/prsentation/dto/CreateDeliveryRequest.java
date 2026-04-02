@@ -1,29 +1,37 @@
 package com.qpang.prsentation.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor
 public class CreateDeliveryRequest {
 
-    @NotNull(message = "orderId는 필수입니다.")
+    @NotNull
     private UUID orderId;
 
-    @NotNull(message = "sourceHubId는 필수입니다.")
+    @NotNull
     private UUID sourceHubId;
 
-    @NotNull(message = "destHubId는 필수입니다.")
+    @NotNull
     private UUID destHubId;
 
-    @NotBlank(message = "deliveryAddress는 필수입니다.")
+    @NotBlank
     private String deliveryAddress;
 
-    @NotBlank(message = "receiverName은 필수입니다.")
+    @NotBlank
     private String receiverName;
 
-    @NotBlank(message = "receiverSlackId는 필수입니다.")
+    @NotBlank
     private String receiverSlackId;
+
+    @Valid
+    @NotNull
+    private List<CreateDeliveryRouteRequest> routes;
 }
