@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = JwtUtilPropertyTest.TestConfig.class)
-@TestPropertySource(properties = "jwt.secret.key=VEVTVF9URVNUX0tFWQ==")
+@TestPropertySource(properties = "jwt.secret.key=VEVTVF9URVNUX0tFWV9QUk9QRVJUWV9URVNUX1NFQ1JFVF9LRVlfMTIzNDU2Nzg5MA==")
 @DisplayName("JwtUtil 프로퍼티 주입 테스트")
 class JwtUtilPropertyTest {
 
@@ -32,6 +32,6 @@ class JwtUtilPropertyTest {
         String secretKey = (String) ReflectionTestUtils.getField(jwtUtil, "secretKey");
 
         assertNotNull(secretKey);
-        assertEquals("VEVTVF9URVNUX0tFWQ==", secretKey);
+        assertEquals("VEVTVF9URVNUX0tFWV9QUk9QRVJUWV9URVNUX1NFQ1JFVF9LRVlfMTIzNDU2Nzg5MA==", secretKey);
     }
 }
