@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record CreateOrderRequest(
@@ -13,7 +14,7 @@ public record CreateOrderRequest(
     @NotNull UUID requestCompanyId,
     @NotNull UUID userId,
     @NotNull UUID deliveryId,
-    @NotNull Long price,
+    @NotNull @Positive Long price,
     @NotNull LocalDateTime desiredArrival,
     String requestMemo,
     @NotNull UUID createdBy,
