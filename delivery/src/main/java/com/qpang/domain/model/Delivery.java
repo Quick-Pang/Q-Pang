@@ -77,4 +77,8 @@ public class Delivery extends BaseUserEntity {
         );
 
     }
+
+    public void updateStatus(DeliveryStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
 }
