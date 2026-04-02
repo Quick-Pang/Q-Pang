@@ -1,25 +1,24 @@
 package com.qpang.prsentation.dto;
 
-import com.qpang.domain.enums.DeliveryStatus;
 import com.qpang.domain.model.Delivery;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.UUID;
 
 @Getter
+@AllArgsConstructor
 public class CreateDeliveryResponse {
-    private UUID deliveryId;
-    private DeliveryStatus deliveryStatus;
 
-    public CreateDeliveryResponse(UUID deliveryId, DeliveryStatus deliveryStatus) {
-        this.deliveryId = deliveryId;
-        this.deliveryStatus = deliveryStatus;
-    }
+    private UUID deliveryId;
+    private UUID orderId;
+    private String deliveryStatus;
 
     public static CreateDeliveryResponse from(Delivery delivery) {
         return new CreateDeliveryResponse(
                 delivery.getId(),
-                delivery.getDeliveryStatus()
+                delivery.getOrderId(),
+                delivery.getDeliveryStatus().name()
         );
     }
 }
