@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
 
@@ -23,8 +23,7 @@ public class JwtUtil {
 
     @Value("${jwt.secret.key}")
     private String secretKey;
-    private Key key;
-    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+    private SecretKey key;
 
     @PostConstruct
     public void init() {
@@ -41,14 +40,14 @@ public class JwtUtil {
                         .subject(username)
                         .claim(AUTHORIZATION_KEY, role.name())
                         .expiration(new Date(date.getTime() + tokenValidTime))
-                          .issuedAt(date)
+                        .issuedAt(date)
                         .signWith(key)
                         .compact();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().verifyWith((javax.crypto.SecretKey) key).build().parseSignedClaims(token);
+            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.error("Invalid JWT signature");
@@ -63,7 +62,7 @@ public class JwtUtil {
     }
 
     public Claims getUserInfoFromToken(String token) {
-        return Jwts.parser().verifyWith((javax.crypto.SecretKey) key).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 
     public String substringToken(String tokenValue) {

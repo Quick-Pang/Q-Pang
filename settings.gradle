@@ -7,4 +7,4 @@ include 'user-service'
 include 'company'
 include 'order-service'
 include 'product'
-
+include 'user-service'
