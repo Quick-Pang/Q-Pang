@@ -43,7 +43,7 @@ public class Product extends BaseUserEntity {
         this.companyId = companyId;
         this.hubId = hubId;
         this.stockQuantity = 0;
-        this.status = ProductStatus.AVAILABLE;
+        this.status = ProductStatus.OUT_OF_STOCK;
     }
 
     public void update(String name) {
