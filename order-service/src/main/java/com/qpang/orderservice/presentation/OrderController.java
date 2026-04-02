@@ -46,7 +46,7 @@ public class OrderController {
     }
 
     @GetMapping
-    public Page<OrderSummaryResponse> List(Pageable pageable){
+    public Page<OrderSummaryResponse> list(Pageable pageable){
         return orderService.getOrderSummaryList(pageable);
     }
 

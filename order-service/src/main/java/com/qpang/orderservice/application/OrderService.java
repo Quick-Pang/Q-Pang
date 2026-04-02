@@ -26,8 +26,8 @@ import org.springframework.stereotype.Service;
 public class OrderService {
     private final OrderRepository orderRepository;
 
-    public Order createdOrder(CreateOrderCommand command){
-        Order order =Order.create(
+    public Order createOrder(CreateOrderCommand command){
+        Order order = Order.create(
             command.supplyCompanyId(),
             command.requestCompanyId(),
             command.userId(),
@@ -57,7 +57,7 @@ public class OrderService {
         );
 
 
-        return OrderResponse.from(createdOrder(command));
+        return OrderResponse.from(createOrder(command));
     }
 
     @Transactional(readOnly = true)
