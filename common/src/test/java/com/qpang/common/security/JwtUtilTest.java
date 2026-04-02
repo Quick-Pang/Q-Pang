@@ -66,14 +66,15 @@ class JwtUtilTest {
     @Test
     @DisplayName("Invalid Token Validation")
     void validateToken_Fail() {
-        // 잘못된 토큰(조작된 서명)에 대한 유효성 검증 실패 테스트
-        // given
-        String invalidToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsImF1dGgiOiJDVVNUT01FUiIsImV4cCI6MTcwMDAwMDAwMCwiaWF0IjoxNzAwMDAwMDAwfQ.invalid_signature";
+        // 정상 토큰의 서명 부분만 조작해서 위조 토큰으로 만듭니다.
+        String validToken = jwtUtil.substringToken(jwtUtil.createToken("testUser", UserRole.MASTER));
+        String[] tokenParts = validToken.split("\\.");
+        String tamperedSignature = tokenParts[2].substring(0, tokenParts[2].length() - 1)
+                + (tokenParts[2].endsWith("a") ? "b" : "a");
+        String invalidToken = tokenParts[0] + "." + tokenParts[1] + "." + tamperedSignature;
 
-        // when
         boolean isValid = jwtUtil.validateToken(invalidToken);
 
-        // then
         assertFalse(isValid);
     }
 }

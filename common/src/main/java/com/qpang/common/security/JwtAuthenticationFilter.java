@@ -1,6 +1,7 @@
 package com.qpang.common.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,9 +40,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(tokenValue)) {
             String token = jwtUtil.substringToken(tokenValue);
 
-            if (token != null && jwtUtil.validateToken(token)) {
-                Claims info = jwtUtil.getUserInfoFromToken(token);
-                setAuthentication(info.getSubject(), (String) info.get(JwtUtil.AUTHORIZATION_KEY));
+            if (token != null) {
+                try {
+                    Claims info = jwtUtil.getUserInfoFromToken(token);
+                    setAuthentication(info.getSubject(), (String) info.get(JwtUtil.AUTHORIZATION_KEY));
+                } catch (JwtException | IllegalArgumentException e) {
+                    log.debug("Invalid JWT token");
+                }
             }
         }
 

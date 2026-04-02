@@ -39,9 +39,9 @@ public class JwtUtil {
         return BEARER_PREFIX +
                 Jwts.builder()
                         .subject(username)
-                        .claim(AUTHORIZATION_KEY, role)
+                        .claim(AUTHORIZATION_KEY, role.name())
                         .expiration(new Date(date.getTime() + tokenValidTime))
-                        .issuedAt(date)
+                          .issuedAt(date)
                         .signWith(key)
                         .compact();
     }
@@ -68,7 +68,7 @@ public class JwtUtil {
 
     public String substringToken(String tokenValue) {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
-            return tokenValue.substring(7);
+            return tokenValue.substring(BEARER_PREFIX.length());
         }
         return null;
     }
