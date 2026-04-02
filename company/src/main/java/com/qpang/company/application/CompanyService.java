@@ -52,10 +52,10 @@ public class CompanyService {
 
     public void update(UUID id, String name, String address) {
         if (name == null || name.isBlank()) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         if (address == null || address.isBlank()) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         Company company = findById(id);
         company.update(name, address);
@@ -63,7 +63,7 @@ public class CompanyService {
 
     public void changeStatus(UUID id, CompanyStatus status) {
         if (status == null) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         Company company = findById(id);
         company.changeStatus(status);

@@ -48,13 +48,13 @@ public class Product extends BaseUserEntity {
 
     public void update(String name) {
         if (name == null || name.isBlank()) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         this.name = name;
     }
     public void changeStatus(ProductStatus newStatus) {
         if (newStatus == null) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
 
         // 단종은 되돌릴 수 없음

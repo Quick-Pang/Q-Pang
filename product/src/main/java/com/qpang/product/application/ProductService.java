@@ -49,7 +49,7 @@ public class ProductService {
 
     public void update(UUID id, String name) {
         if (name == null || name.isBlank()) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         Product product = findById(id);
         product.update(name);
@@ -57,7 +57,7 @@ public class ProductService {
 
     public void changeStatus(UUID id, ProductStatus status) {
         if (status == null) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         Product product = findById(id);
         product.changeStatus(status);
