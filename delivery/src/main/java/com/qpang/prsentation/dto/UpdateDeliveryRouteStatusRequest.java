@@ -11,4 +11,7 @@ public class UpdateDeliveryRouteStatusRequest {
 
     @NotNull
     private DeliveryRouteStatus deliveryStatus;
+
+    private Double actualDistance;
+    private Integer actualTime;
 }
