@@ -89,4 +89,10 @@ public class DeliveryRoute extends BaseUserEntity {
     public void updateStatus(DeliveryRouteStatus deliveryStatus) {
         this.deliveryStatus = deliveryStatus;
     }
+
+    public void updateRouteProgress(DeliveryRouteStatus deliveryStatus, Double actualDistance, Integer actualTime) {
+        this.deliveryStatus = deliveryStatus;
+        this.actualDistance = actualDistance;
+        this.actualTime = actualTime;
+    }
 }

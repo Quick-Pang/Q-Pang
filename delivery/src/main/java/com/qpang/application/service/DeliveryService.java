@@ -110,6 +110,39 @@ public class DeliveryService {
                 .toList();
     }
 
+    //현재 진행 경로 확인
+    @Transactional(readOnly = true)
+    public GetCurrentDeliveryRouteResponse getCurrentDeliveryRoute(UUID deliveryId) {
+        List<DeliveryRoute> routes = deliveryRouteRepository
+                .findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(deliveryId);
+
+        DeliveryRoute currentRoute = routes.stream()
+                .filter(route -> !route.getDeliveryStatus().name().equals("COMPLETED"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("현재 진행 중인 배송 경로가 없습니다."));
+
+        return new GetCurrentDeliveryRouteResponse(
+                currentRoute.getId(),
+                currentRoute.getSequence(),
+                currentRoute.getSourceHubId(),
+                currentRoute.getDestHubId(),
+                currentRoute.getDeliveryStatus().name()
+        );
+    }
+
+    //배송 정보 수정
+    @Transactional
+    public void updateDelivery(UUID deliveryId, UpdateDeliveryRequest request) {
+        Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송이 존재하지 않습니다."));
+
+        delivery.updateInfo(
+                request.getDeliveryAddress(),
+                request.getReceiverName(),
+                request.getReceiverSlackId()
+        );
+    }
+
     //배송 상태 수정 todo: 권한 별 기능 추가
     @Transactional
     public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus deliveryStatus) {
@@ -121,11 +154,15 @@ public class DeliveryService {
 
     //배송 경로 상태 수정 todo: 권한 별 기능 추가
     @Transactional
-    public void updateDeliveryRouteStatus(UUID deliveryRouteId, DeliveryRouteStatus deliveryStatus) {
+    public void updateDeliveryRouteStatus(UUID deliveryRouteId, UpdateDeliveryRouteStatusRequest request) {
         DeliveryRoute deliveryRoute = deliveryRouteRepository.findById(deliveryRouteId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송 경로가 존재하지 않습니다."));
 
-        deliveryRoute.updateStatus(deliveryStatus);
+        deliveryRoute.updateRouteProgress(
+                request.getDeliveryStatus(),
+                request.getActualDistance(),
+                request.getActualTime()
+        );
     }
 
     //배송 삭제 todo: 권한 별 기능 추가
