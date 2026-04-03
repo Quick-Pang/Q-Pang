@@ -49,6 +49,22 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    //enum 에러
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+
+        log.error("HttpMessageNotReadableException: {}", e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .success(false)
+                        .status(400)
+                        .errorCode("INVALID_PRODUCT_STATUS")
+                        .message("유효하지 않은 상태코드입니다.")
+                        .build());
+    }
+
     // 나머지 에러
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
@@ -62,21 +78,6 @@ public class GlobalExceptionHandler {
                         .status(500)
                         .errorCode("INTERNAL_SERVER_ERROR")
                         .message("서버 오류가 발생했습니다.")
-                        .build());
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-
-        log.error("HttpMessageNotReadableException: {}", e.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.builder()
-                        .success(false)
-                        .status(400)
-                        .errorCode("INVALID_PRODUCT_STATUS")
-                        .message("유효하지 않은 상태코드입니다.")
                         .build());
     }
 }
