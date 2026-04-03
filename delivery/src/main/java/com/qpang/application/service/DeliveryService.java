@@ -170,7 +170,7 @@ public class DeliveryService {
         );
     }
 
-    // 배송 상태 수정
+    // 배송 상태 수정 todo: 포함어있지 않은 상태 입력시 오류
     @Transactional
     public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus deliveryStatus) {
         validateId(deliveryId);
