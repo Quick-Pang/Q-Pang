@@ -80,7 +80,7 @@ public class ProductService {
     }
 
     public void increaseStock(UUID id, int quantity) {
-        if (quantity < 1) {
+        if (quantity < Product.STOCK_QUANTITY) {
             throw new CustomException(ProductErrorCode.INVALID_STOCK_QUANTITY);
         }
         Product product = findById(id);
@@ -91,7 +91,7 @@ public class ProductService {
     }
 
     public void decreaseStock(UUID id, int quantity) {
-        if (quantity < 1) {
+        if (quantity < Product.STOCK_QUANTITY) {
             throw new CustomException(ProductErrorCode.INVALID_STOCK_QUANTITY);
         }
         Product product = findById(id);
