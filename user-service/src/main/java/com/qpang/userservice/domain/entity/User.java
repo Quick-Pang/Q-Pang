@@ -1,5 +1,8 @@
 package com.qpang.userservice.domain.entity;
 
+
+import com.qpang.common.entity.UserRole;
+import com.qpang.common.entity.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
