@@ -1,4 +1,4 @@
-package com.qpang.product.client;
+package com.qpang.company.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.UUID;
 
-@FeignClient(name = "company-service")
-public interface CompanyClient {
-    @GetMapping("/companies/{id}")
-    Object getCompany(@PathVariable UUID id);
+@FeignClient(name = "user-service")
+public interface UserClient {
+    @GetMapping("/users/{id}")
+    Object getHub(@PathVariable UUID id);
 }
