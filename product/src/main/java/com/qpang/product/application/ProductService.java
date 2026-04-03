@@ -27,8 +27,6 @@ public class ProductService {
     private final CompanyClient companyClient;
 
     public Product create(String name, UUID companyId, UUID hubId) {
-
-        // ✅ 업체 존재 여부 확인
         try {
             companyClient.getCompany(companyId);
         } catch (Exception e) {
@@ -58,6 +56,11 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         if (companyId != null) {
+            try {
+                companyClient.getCompany(companyId);
+            } catch (Exception e) {
+                throw new CustomException(ProductErrorCode.COMPANY_NOT_FOUND);
+            }
             return productRepository.findByCompanyIdAndNameContainingAndDeletedAtIsNull(companyId, name, pageable);
         }
         return productRepository.findByNameContainingAndDeletedAtIsNull(name, pageable);
