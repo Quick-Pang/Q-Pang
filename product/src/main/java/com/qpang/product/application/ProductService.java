@@ -2,6 +2,7 @@ package com.qpang.product.application;
 
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
+import com.qpang.product.client.CompanyClient;
 import com.qpang.product.domain.entity.Product;
 import com.qpang.product.domain.enums.ProductStatus;
 import com.qpang.product.exception.ProductErrorCode;
@@ -23,8 +24,17 @@ import java.util.UUID;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CompanyClient companyClient;
 
     public Product create(String name, UUID companyId, UUID hubId) {
+
+        // ✅ 업체 존재 여부 확인
+        try {
+            companyClient.getCompany(companyId);
+        } catch (Exception e) {
+            throw new CustomException(ProductErrorCode.COMPANY_NOT_FOUND);
+        }
+
         return productRepository.save(
                 Product.builder()
                         .name(name)

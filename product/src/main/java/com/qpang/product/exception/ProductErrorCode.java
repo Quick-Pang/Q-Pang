@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 public enum ProductErrorCode implements ErrorCode {
 
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
-    PRODUCT_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 상태 코드를 찾을 수 없습니다."),
+    COMPANY_NOT_FOUND(HttpStatus.NOT_FOUND, "업체를 찾을 수 없습니다."),
+    HUB_NOT_FOUND(HttpStatus.NOT_FOUND, "허브를 찾을 수 없습니다."),
+    INVALID_PRODUCT_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 상품 상태코드입니다."),
     PRODUCT_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 상품입니다."),
     PRODUCT_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "재고가 부족합니다."),
     INVALID_STOCK_QUANTITY(HttpStatus.BAD_REQUEST, "재고 입력 수량은 1 이상이어야 합니다."),
