@@ -5,6 +5,7 @@ import com.qpang.common.exception.CustomException;
 import com.qpang.product.client.CompanyClient;
 import com.qpang.product.domain.entity.Product;
 import com.qpang.product.domain.enums.ProductStatus;
+import com.qpang.product.dto.CreateProductCommand;
 import com.qpang.product.exception.ProductErrorCode;
 import com.qpang.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,20 +27,16 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CompanyClient companyClient;
 
-    public Product create(String name, UUID companyId, UUID hubId) {
+    public Product create(CreateProductCommand command) {
+        // 업체 존재 여부 확인
         try {
-            companyClient.getCompany(companyId);
+            companyClient.getCompany(command.getCompanyId());
         } catch (Exception e) {
             throw new CustomException(ProductErrorCode.COMPANY_NOT_FOUND);
         }
 
-        return productRepository.save(
-                Product.builder()
-                        .name(name)
-                        .companyId(companyId)
-                        .hubId(hubId)
-                        .build()
-        );
+        Product product = command.toEntity();
+        return productRepository.save(product);
     }
 
     @Transactional(readOnly = true)
