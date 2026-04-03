@@ -9,5 +9,5 @@ import java.util.UUID;
 @FeignClient(name = "user-service")
 public interface UserClient {
     @GetMapping("/users/{id}")
-    Object getHub(@PathVariable UUID id);
+    Object getUser(@PathVariable UUID id);
 }
