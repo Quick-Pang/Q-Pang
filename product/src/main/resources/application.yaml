@@ -1,9 +1,13 @@
 spring:
+  application:
+    name: product-service
+
   datasource:
     url: jdbc:postgresql://localhost:5432/qpang_db
     username: postgres
     password: 1234
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,3 +18,12 @@ spring:
 
 server:
   port: 8081
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:19090/eureka/
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:bPosfkVbiUZD7LJ+lap3bxIcC/NVxHTXyRmWQ47hih1ND9jevbxbkqX4krCS45+6FCe2CEjgQwHFk2iGx5Q/9A==}
