@@ -8,12 +8,31 @@ spring:
           uri: lb://order-service
           predicates:
             - Path=/orders/**
-            
+
+        - id: hub-service
+          uri: lb://hub-service
+          predicates:
+            - Path=/hubs/**
+
+        - id: company-service
+          uri: lb://company-service
+          predicates:
+            - Path=/company/**
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/products/**
 
 server:
-  port: 18080
+  port: 8080
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:19090/eureka/
+      defaultZone: http://localhost:9090/eureka/
