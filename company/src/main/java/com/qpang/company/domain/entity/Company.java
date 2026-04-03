@@ -54,10 +54,10 @@ public class Company extends BaseUserEntity {
 
     public void update(String name, String address) {
         if (name == null || name.isBlank()) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         if (address == null || address.isBlank()) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         this.name = name;
         this.address = address;
@@ -65,7 +65,7 @@ public class Company extends BaseUserEntity {
 
     public void changeStatus(CompanyStatus status) {
         if (status == null) {
-            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(CommonErrorCode.MISSING_INPUT_VALUE);
         }
         this.status = status;
     }

@@ -8,6 +8,7 @@ import com.qpang.company.dto.CompanyStatusUpdateRequest;
 import com.qpang.company.dto.CompanyUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,20 +40,16 @@ public class CompanyController {
 
     // 전체 조회 및 허브 별 조회
     @GetMapping
-    public ResponseEntity<APIResponse<List<CompanyResponse>>> findAll(
-            @RequestParam(required = false) UUID hubId) {
-        List<CompanyResponse> responses;
-        if (hubId != null) {
-            responses = companyService.findAllByHubId(hubId)
-                    .stream()
-                    .map(CompanyResponse::from)
-                    .toList();
-        } else {
-            responses = companyService.findAll()
-                    .stream()
-                    .map(CompanyResponse::from)
-                    .toList();
-        }
+    public ResponseEntity<APIResponse<Page<CompanyResponse>>> findAll(
+            @RequestParam(required = false) UUID hubId,
+            @RequestParam(required = false, defaultValue = "") String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy) {
+
+        Page<CompanyResponse> responses = companyService.search(hubId, name, page, size, sortBy)
+                .map(CompanyResponse::from);
+
         return ResponseEntity.ok(APIResponse.success(responses));
     }
 

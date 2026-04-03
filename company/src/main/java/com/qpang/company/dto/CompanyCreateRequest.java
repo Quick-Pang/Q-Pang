@@ -13,8 +13,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CompanyCreateRequest {
 
-    @NotBlank
-    @Size(max = 200)
+    @NotBlank(message = "업체명은 필수 입력값입니다.")
+    @Size(max = 200, message = "업체명은 200자 이하 입니다.")
     private String name;
 
     @NotNull
@@ -23,8 +23,8 @@ public class CompanyCreateRequest {
     @NotNull
     private UUID hubId;
 
-    @NotBlank
-    @Size(max = 255)
+    @NotBlank(message = "주소는 필수 입력값입니다.")
+    @Size(max = 255, message = "주소는 255자 이하 입니다.")
     private String address;
 
     @NotNull
