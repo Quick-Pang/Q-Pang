@@ -24,11 +24,12 @@ public class DeliveryService {
     private static final int FIRST_ROUTE_SEQUENCE = 1;
     private static final double DEFAULT_ESTIMATED_DISTANCE = 0.0;
     private static final int DEFAULT_ESTIMATED_TIME = 0;
+    //경로 번호, 거리, 시간 후에 주문 생성 시 orderService에서 값을 받아서 들어감
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryRouteRepository deliveryRouteRepository;
 
-    // 배송 생성
+    // 배송 생성 todo: 서비스는 비즈니스 규칙 검증, 엔티티가 도메인 규칙 검증, dto가 입력값 형식 검증
     @Transactional
     public CreateDeliveryResponse createDelivery(CreateDeliveryRequest request) {
         validateCreateDeliveryRequest(request);
@@ -48,15 +49,16 @@ public class DeliveryService {
         deliveryRouteRepository.saveAll(routes);
 
         return CreateDeliveryResponse.from(savedDelivery);
+        // todo from이 객체를 받아서 다른 객체로 변환할 때 쓰는 메서드명 관례고 그냥 savedDelivery 보내면 안되는 건
+        // 다른 데이터들 값도 들어가 있음createdAt updatedAt deletedAt 같은것
     }
 
     // 배송 경로 생성
+    //todo 배송 경로를 여러개 만들어 줄거야 배송 객체와 dto를 통해 딜리버리루트라는 객체 리스트를 만들어 반환
     private List<DeliveryRoute> createDeliveryRoutes(Delivery savedDelivery, CreateDeliveryRequest request) {
         return request.getRoutes().stream()
                 .map(route -> {
-                    if (route.getSequence() < FIRST_ROUTE_SEQUENCE ||
-                            route.getSourceHubId() == null ||
-                            route.getDestHubId() == null) {
+                    if (route.getSourceHubId() == null || route.getDestHubId() == null) {
                         throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_ROUTE_INPUT);
                     }
 
@@ -74,10 +76,14 @@ public class DeliveryService {
 
     // 배송 단건 조회
     @Transactional(readOnly = true)
+    //todo“이 메서드는 조회용이다”라는 의미가 분명해짐
+    //JPA/Hibernate가 약간 더 최적화할 수 있음
+    //실수로 수정성 로직이 들어가는 걸 막는 데 도움됨
     public GetDeliveryResponse getDelivery(UUID deliveryId) {
         validateId(deliveryId);
 
         Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
+                //소프트 딜리트 구별
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
 
         return GetDeliveryResponse.from(delivery);
@@ -114,7 +120,7 @@ public class DeliveryService {
                 .toList();
     }
 
-    // 배송 경로 조회
+    // 배송 경로 조회 배송 ID로
     @Transactional(readOnly = true)
     public List<GetDeliveryRouteResponse> getDeliveryRoutes(UUID deliveryId) {
         validateId(deliveryId);
@@ -234,7 +240,7 @@ public class DeliveryService {
                 request.getReceiverName() == null || request.getReceiverName().isBlank() ||
                 request.getRoutes() == null || request.getRoutes().isEmpty()) {
             throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_INPUT);
-        }
+        } //todo 조건 중 하나라도 true면 예외
     }
 
     private void validateUpdateDeliveryRequest(UpdateDeliveryRequest request) {

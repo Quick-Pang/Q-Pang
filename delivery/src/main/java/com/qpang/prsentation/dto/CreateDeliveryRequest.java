@@ -35,3 +35,4 @@ public class CreateDeliveryRequest {
     @NotNull
     private List<CreateDeliveryRouteRequest> routes;
 }
+//todo: not null은 모든 객체 / notblank는 String 전용이고 빈문자열 공백까지 막음
