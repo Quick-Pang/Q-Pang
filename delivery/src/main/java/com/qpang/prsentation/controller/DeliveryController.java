@@ -1,6 +1,7 @@
 package com.qpang.prsentation.controller;
 
 import com.qpang.application.service.DeliveryService;
+import com.qpang.infrastructure.client.dto.CreateDeliveryCommand;
 import com.qpang.prsentation.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class DeliveryController {
 
     //배송 생성todo: 권한 검증
     @PostMapping
-    public CreateDeliveryResponse createDelivery(@Valid @RequestBody CreateDeliveryRequest request) {
+    public CreateDeliveryResponse createDelivery(@Valid @RequestBody CreateDeliveryCommand request) {
         return deliveryService.createDelivery(request);
     }
 

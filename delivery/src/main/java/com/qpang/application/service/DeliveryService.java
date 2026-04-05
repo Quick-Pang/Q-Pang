@@ -7,6 +7,10 @@ import com.qpang.domain.enums.DeliveryStatus;
 import com.qpang.domain.model.Delivery;
 import com.qpang.domain.model.DeliveryRoute;
 import com.qpang.exception.DeliveryErrorCode;
+import com.qpang.infrastructure.client.HubServiceClient;
+import com.qpang.infrastructure.client.dto.CreateDeliveryCommand;
+import com.qpang.infrastructure.client.dto.GetHubRouteRequest;
+import com.qpang.infrastructure.client.dto.GetDeliveryInfoResponse;
 import com.qpang.prsentation.dto.*;
 import com.qpang.repository.DeliveryRepository;
 import com.qpang.repository.DeliveryRouteRepository;
@@ -28,62 +32,56 @@ public class DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryRouteRepository deliveryRouteRepository;
+    private final HubServiceClient hubServiceClient;
 
-    // 배송 생성 todo: 서비스는 비즈니스 규칙 검증, 엔티티가 도메인 규칙 검증, dto가 입력값 형식 검증
+    // 배송 생성 todo: 출발 허브 담당 도메인 정하기, 허브 도메인에게 이동 경로 받아오기 연동할기
     @Transactional
-    public CreateDeliveryResponse createDelivery(CreateDeliveryRequest request) {
-        validateCreateDeliveryRequest(request);
+    public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command) {
+        validateCreateDeliveryCommand(command);
 
-        Delivery delivery = Delivery.create(
-                request.getOrderId(),
-                request.getSourceHubId(),
-                request.getDestHubId(),
-                request.getDeliveryAddress(),
-                request.getReceiverName(),
-                request.getReceiverSlackId()
+        //todo: 허브 도메인에게 출발 허브랑 도착지 전달 -> 허브 간 이동 경로 받아오ㅓ기
+        GetDeliveryInfoResponse deliveryInfo = hubServiceClient.getHubRoute(
+                new GetHubRouteRequest(
+                        command.getSourceHubId(),
+                        command.getDeliveryAddress()
+                )
         );
 
+        Delivery delivery = Delivery.create(
+                command.getOrderId(),
+                command.getSourceHubId(),
+                deliveryInfo.getDestHubId(),
+                command.getDeliveryAddress(),
+                command.getReceiverName(),
+                command.getReceiverSlackId()
+        );
+
+        //배송 경로 생성
+        List<DeliveryRoute> routeList = deliveryInfo.getRoutes().stream()
+                .map(route -> DeliveryRoute.create(
+                        delivery.getId(),
+                        route.getSequence(),
+                        route.getSourceHubId(),
+                        route.getDestHubId(),
+                        route.getEstimatedDistance(),
+                        route.getEstimatedTime(),
+                        route.getDeliveryManager()
+                ))
+                .toList();
+
+
+        deliveryRouteRepository.saveAll(routeList);
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        List<DeliveryRoute> routes = createDeliveryRoutes(savedDelivery, request);
-        deliveryRouteRepository.saveAll(routes);
-
         return CreateDeliveryResponse.from(savedDelivery);
-        // todo from이 객체를 받아서 다른 객체로 변환할 때 쓰는 메서드명 관례고 그냥 savedDelivery 보내면 안되는 건
-        // 다른 데이터들 값도 들어가 있음createdAt updatedAt deletedAt 같은것
-    }
-
-    // 배송 경로 생성
-    //todo 배송 경로를 여러개 만들어 줄거야 배송 객체와 dto를 통해 딜리버리루트라는 객체 리스트를 만들어 반환
-    private List<DeliveryRoute> createDeliveryRoutes(Delivery savedDelivery, CreateDeliveryRequest request) {
-        return request.getRoutes().stream()
-                .map(route -> {
-                    if (route.getSourceHubId() == null || route.getDestHubId() == null) {
-                        throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_ROUTE_INPUT);
-                    }
-
-                    return DeliveryRoute.create(
-                            savedDelivery.getId(),
-                            route.getSequence(),
-                            route.getSourceHubId(),
-                            route.getDestHubId(),
-                            DEFAULT_ESTIMATED_DISTANCE,
-                            DEFAULT_ESTIMATED_TIME
-                    );
-                })
-                .toList();
     }
 
     // 배송 단건 조회
     @Transactional(readOnly = true)
-    //todo“이 메서드는 조회용이다”라는 의미가 분명해짐
-    //JPA/Hibernate가 약간 더 최적화할 수 있음
-    //실수로 수정성 로직이 들어가는 걸 막는 데 도움됨
     public GetDeliveryResponse getDelivery(UUID deliveryId) {
         validateId(deliveryId);
 
         Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
-                //소프트 딜리트 구별
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
 
         return GetDeliveryResponse.from(delivery);
@@ -114,13 +112,14 @@ public class DeliveryService {
     public List<GetDeliveryListResponse> getDeliveriesByDestHub(UUID destHubId) {
         validateId(destHubId);
 
+
         return deliveryRepository.findAllByDestHubIdAndDeletedAtIsNull(destHubId)
                 .stream()
                 .map(GetDeliveryListResponse::from)
                 .toList();
     }
 
-    // 배송 경로 조회 배송 ID로
+    // 배송 경로 조회
     @Transactional(readOnly = true)
     public List<GetDeliveryRouteResponse> getDeliveryRoutes(UUID deliveryId) {
         validateId(deliveryId);
@@ -231,16 +230,14 @@ public class DeliveryService {
         delivery.delete(deletedBy);
     }
 
-    private void validateCreateDeliveryRequest(CreateDeliveryRequest request) {
+    private void validateCreateDeliveryCommand(CreateDeliveryCommand request) {
         if (request == null ||
                 request.getOrderId() == null ||
                 request.getSourceHubId() == null ||
-                request.getDestHubId() == null ||
                 request.getDeliveryAddress() == null || request.getDeliveryAddress().isBlank() ||
-                request.getReceiverName() == null || request.getReceiverName().isBlank() ||
-                request.getRoutes() == null || request.getRoutes().isEmpty()) {
+                request.getReceiverName() == null || request.getReceiverName().isBlank()) {
             throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_INPUT);
-        } //todo 조건 중 하나라도 true면 예외
+        }
     }
 
     private void validateUpdateDeliveryRequest(UpdateDeliveryRequest request) {
