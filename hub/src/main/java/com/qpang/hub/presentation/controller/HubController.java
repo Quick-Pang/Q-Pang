@@ -3,7 +3,7 @@ package com.qpang.hub.presentation.controller;
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
 import com.qpang.hub.application.dto.HubInitCommand;
-import com.qpang.hub.application.dto.HubResult;
+import com.qpang.hub.application.dto.HubResponseDto;
 import com.qpang.hub.application.service.HubService;
 import com.qpang.hub.presentation.dto.HubCreateRequest;
 import com.qpang.hub.presentation.dto.HubResponse;
@@ -28,53 +28,50 @@ public class HubController {
     @GetMapping
     public Page<HubResponse> getAllHubs(@PageableDefault(size = 10) Pageable pageable) {
         return hubService.getAllHubs(pageable)
-                .map(HubResponse::from);
+                .map(HubResponse::fromDto);
     }
 
     @PostMapping
-    public ResponseEntity<HubResponse> createHub(@RequestBody HubCreateRequest request) {
-        HubResult result = hubService.createHub(request.toCommand());
-        return ResponseEntity.ok(HubResponse.from(result));
+    public HubResponse createHub(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody HubCreateRequest request) {
+        HubResponseDto result = hubService.createHub(userId, request.toCreateCommand());
+        return HubResponse.fromDto(result);
     }
 
     @GetMapping("/{hubId}")
     public HubResponse getHubById(@PathVariable(name = "hubId") UUID hubId) {
-        return HubResponse.from(hubService.getHubById(hubId));
+        HubResponseDto result = hubService.getHubById(hubId);
+        return HubResponse.fromDto(result);
     }
 
     @PatchMapping("/{hubId}")
     public HubResponse updateHub(
+            @RequestHeader("X-User-Id") Long userId,
             @PathVariable(name = "hubId") UUID hubId,
-            @RequestBody HubUpdateRequest request
-    ) {
-        return HubResponse.from(hubService.updateHub(hubId, request.toCommand()));
+            @RequestBody HubUpdateRequest request) {
+        HubResponseDto result = hubService.updateHub(hubId, userId, request.toCommand());
+        return HubResponse.fromDto(result);
     }
 
     @DeleteMapping("/{hubId}")
-    public ResponseEntity<Void> deleteHub(@PathVariable(name = "hubId") UUID hubId) {
-        hubService.deleteHub(hubId, 1L);
+    public ResponseEntity<Void> deleteHub(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable(name = "hubId") UUID hubId) {
+        hubService.deleteHub(hubId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/init")
     public ResponseEntity<String> initHubData(
             @RequestHeader("X-User-Id") Long userId,
-            @RequestBody List<HubCreateRequest> requests
-    ) {
+            @RequestBody List<HubCreateRequest> requests) {
         if (requests == null || requests.isEmpty()) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
 
         List<HubInitCommand> commands = requests.stream()
-                .map(req -> new HubInitCommand(
-                        req.name(),
-                        req.address(),
-                        req.latitude(),
-                        req.longitude(),
-                        req.managerId(),
-                        req.hubType(),
-                        req.centerHubId()
-                ))
+                .map(HubCreateRequest::toInitCommand)
                 .toList();
 
         hubService.initHubData(userId, commands);
