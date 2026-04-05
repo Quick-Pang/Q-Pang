@@ -74,7 +74,8 @@ public class DeliveryRoute extends BaseUserEntity {
             UUID sourceHubId,
             UUID destHubId,
             Double estimatedDistance,
-            Integer estimatedTime
+            Integer estimatedTime,
+            UUID deliveryManager
     ) {
         return new DeliveryRoute(
                 deliveryId,

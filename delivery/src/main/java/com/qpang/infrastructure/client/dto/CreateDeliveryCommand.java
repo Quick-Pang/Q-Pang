@@ -1,26 +1,21 @@
-package com.qpang.prsentation.dto;
+package com.qpang.infrastructure.client.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
-public class CreateDeliveryRequest {
+public class CreateDeliveryCommand {
 
     @NotNull
     private UUID orderId;
 
     @NotNull
     private UUID sourceHubId;
-
-    @NotNull
-    private UUID destHubId;
 
     @NotBlank
     private String deliveryAddress;
@@ -30,9 +25,4 @@ public class CreateDeliveryRequest {
 
     @NotBlank
     private String receiverSlackId;
-
-    @Valid
-    @NotNull
-    private List<CreateDeliveryRouteRequest> routes;
 }
-//todo: not null은 모든 객체 / notblank는 String 전용이고 빈문자열 공백까지 막음

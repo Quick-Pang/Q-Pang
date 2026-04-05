@@ -40,7 +40,7 @@ public class Delivery extends BaseUserEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_status")
-    private DeliveryStatus deliveryStatus = DeliveryStatus.WAITING;
+    private DeliveryStatus deliveryStatus;
 
     private Delivery(
             UUID orderId,
