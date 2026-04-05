@@ -1,7 +1,6 @@
 package com.qpang.hub.presentation.dto;
 
-import com.qpang.hub.application.dto.HubResult;
-import com.qpang.hub.domain.model.HubType;
+import com.qpang.hub.application.dto.HubResponseDto;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -12,20 +11,16 @@ public record HubResponse(
         String address,
         BigDecimal latitude,
         BigDecimal longitude,
-        UUID managerId,
-        HubType hubType,
-        UUID centerHubId
+        UUID managerId
 ) {
-    public static HubResponse from(HubResult result) {
+    public static HubResponse fromDto(HubResponseDto dto) {
         return new HubResponse(
-                result.id(),
-                result.name(),
-                result.address(),
-                result.latitude(),
-                result.longitude(),
-                result.managerId(),
-                result.hubType(),
-                result.centerHubId()
+                dto.id(),
+                dto.name(),
+                dto.address(),
+                dto.latitude(),
+                dto.longitude(),
+                dto.managerId()
         );
     }
 }
