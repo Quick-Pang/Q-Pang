@@ -3,6 +3,7 @@ package com.qpang.hub.presentation.controller;
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
 import com.qpang.hub.application.dto.HubInitCommand;
+import com.qpang.hub.application.dto.HubResult;
 import com.qpang.hub.application.service.HubService;
 import com.qpang.hub.presentation.dto.HubCreateRequest;
 import com.qpang.hub.presentation.dto.HubResponse;
@@ -31,20 +32,22 @@ public class HubController {
     }
 
     @PostMapping
-    public HubResponse createHub(@RequestBody HubCreateRequest request) {
-        return hubService.createHub(request);
+    public ResponseEntity<HubResponse> createHub(@RequestBody HubCreateRequest request) {
+        HubResult result = hubService.createHub(request.toCommand());
+        return ResponseEntity.ok(HubResponse.from(result));
     }
 
     @GetMapping("/{hubId}")
     public HubResponse getHubById(@PathVariable(name = "hubId") UUID hubId) {
-        return hubService.getHubById(hubId);
+        return HubResponse.from(hubService.getHubById(hubId));
     }
 
     @PatchMapping("/{hubId}")
     public HubResponse updateHub(
             @PathVariable(name = "hubId") UUID hubId,
-            @RequestBody HubUpdateRequest request) {
-        return hubService.updateHub(hubId, request);
+            @RequestBody HubUpdateRequest request
+    ) {
+        return HubResponse.from(hubService.updateHub(hubId, request.toCommand()));
     }
 
     @DeleteMapping("/{hubId}")
@@ -56,13 +59,24 @@ public class HubController {
     @PostMapping("/init")
     public ResponseEntity<String> initHubData(
             @RequestHeader("X-User-Id") Long userId,
-            @RequestBody List<HubCreateRequest> requests) {
+            @RequestBody List<HubCreateRequest> requests
+    ) {
         if (requests == null || requests.isEmpty()) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
+
         List<HubInitCommand> commands = requests.stream()
-                .map(HubCreateRequest::toCommand)
+                .map(req -> new HubInitCommand(
+                        req.name(),
+                        req.address(),
+                        req.latitude(),
+                        req.longitude(),
+                        req.managerId(),
+                        req.hubType(),
+                        req.centerHubId()
+                ))
                 .toList();
+
         hubService.initHubData(userId, commands);
         return ResponseEntity.ok("데이터 삽입 완료");
     }
