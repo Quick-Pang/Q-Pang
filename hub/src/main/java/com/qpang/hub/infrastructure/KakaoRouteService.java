@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -34,33 +36,58 @@ public class KakaoRouteService {
         headers.set("Authorization", "KakaoAK " + kakaoApiKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        ResponseEntity<Map> response =
-                restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        try {
+            ResponseEntity<Map> response =
+                    restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
 
-        Map<String, Object> body = response.getBody();
+            Map<String, Object> body = response.getBody();
+            if (body == null || !body.containsKey("routes")) {
+                throw new IllegalStateException("Kakao API 응답에 routes가 없습니다.");
+            }
 
-        if (body == null || !body.containsKey("routes")) {
-            return new RouteInfo(BigDecimal.ZERO, 0);
+            List<Map<String, Object>> routes = (List<Map<String, Object>>) body.get("routes");
+            if (routes == null || routes.isEmpty()) {
+                throw new IllegalStateException("Kakao API routes가 비어 있습니다.");
+            }
+
+            Map<String, Object> route = routes.get(0);
+            Map<String, Object> summary = (Map<String, Object>) route.get("summary");
+            if (summary == null) {
+                throw new IllegalStateException("Kakao API summary가 없습니다.");
+            }
+
+            Object distanceObj = summary.get("distance");
+            Object durationObj = summary.get("duration");
+
+            if (!(distanceObj instanceof Number distanceNumber)) {
+                throw new IllegalStateException("Kakao API distance 값이 없습니다.");
+            }
+
+            if (!(durationObj instanceof Number durationNumber)) {
+                throw new IllegalStateException("Kakao API duration 값이 없습니다.");
+            }
+
+            BigDecimal distanceKm = BigDecimal
+                    .valueOf(distanceNumber.doubleValue())
+                    .divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP);
+
+            int durationMin = durationNumber.intValue() / 60;
+
+            if (distanceKm.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalStateException("Kakao API distance 값이 0 이하입니다.");
+            }
+
+            if (durationMin <= 0) {
+                throw new IllegalStateException("Kakao API duration 값이 0 이하입니다.");
+            }
+
+            return new RouteInfo(distanceKm, durationMin);
+
+        } catch (ResourceAccessException e) {
+            throw new IllegalStateException("Kakao API timeout 또는 네트워크 오류", e);
+        } catch (RestClientException e) {
+            throw new IllegalStateException("Kakao API 호출 실패", e);
         }
-
-        List<Map<String, Object>> routes = (List<Map<String, Object>>) body.get("routes");
-        if (routes == null || routes.isEmpty()) {
-            return new RouteInfo(BigDecimal.ZERO, 0);
-        }
-
-        Map<String, Object> route = routes.get(0);
-        Map<String, Object> summary = (Map<String, Object>) route.get("summary");
-        if (summary == null) {
-            return new RouteInfo(BigDecimal.ZERO, 0);
-        }
-
-        BigDecimal distanceKm = BigDecimal
-                .valueOf(((Number) summary.get("distance")).doubleValue())
-                .divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP);
-
-        int durationMin = ((Number) summary.get("duration")).intValue() / 60;
-
-        return new RouteInfo(distanceKm, durationMin);
     }
 
     public record RouteInfo(BigDecimal distance, int duration) {}
