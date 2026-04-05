@@ -28,20 +28,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     public Order createOrder(CreateOrderCommand command){
-        Order order = Order.create(
-            command.supplyCompanyId(),
-            command.requestCompanyId(),
-            command.userId(),
-            command.deliveryId(),
-            command.price(),
-            command.desiredArrival(),
-            command.requestMemo(),
-            command.createdBy()
-        );
-        for(CreateOrderItemCommand itemCommand : command.items()){
-            order.addItem(itemCommand.productId(),itemCommand.quantity(),command.createdBy());
-        }
-        return orderRepository.save(order);
+        return orderRepository.save(command.toOrder());
     }
 
     public OrderResponse createOrderFromRequest(CreateOrderRequest req){
