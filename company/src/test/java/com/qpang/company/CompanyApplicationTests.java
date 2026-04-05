@@ -1,10 +1,10 @@
-package com.qpang.common;
+package com.qpang.company;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CommonApplicationTests {
+class CompanyApplicationTests {
 
     @Test
     void contextLoads() {
