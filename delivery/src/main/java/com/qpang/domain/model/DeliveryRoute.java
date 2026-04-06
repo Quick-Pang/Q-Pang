@@ -48,7 +48,7 @@ public class DeliveryRoute extends BaseUserEntity {
     @Column(name = "delivery_status")
     private DeliveryRouteStatus deliveryStatus;
 
-    @Column(name = "deleivery_manager")
+    @Column(name = "delivery_manager")
     private UUID deliveryManager;
 
     private DeliveryRoute(
@@ -57,7 +57,8 @@ public class DeliveryRoute extends BaseUserEntity {
             UUID sourceHubId,
             UUID destHubId,
             Double estimatedDistance,
-            Integer estimatedTime
+            Integer estimatedTime,
+            UUID deliveryManager
     ) {
         this.deliveryId = deliveryId;
         this.sequence = sequence;
@@ -65,7 +66,10 @@ public class DeliveryRoute extends BaseUserEntity {
         this.destHubId = destHubId;
         this.estimatedDistance = estimatedDistance;
         this.estimatedTime = estimatedTime;
+        this.deliveryManager = deliveryManager;
         this.deliveryStatus = DeliveryRouteStatus.WAITING_AT_HUB;
+        this.actualDistance = 0.0;
+        this.actualTime = 0;
     }
 
     public static DeliveryRoute create(
@@ -83,16 +87,15 @@ public class DeliveryRoute extends BaseUserEntity {
                 sourceHubId,
                 destHubId,
                 estimatedDistance,
-                estimatedTime
+                estimatedTime,
+                deliveryManager
         );
     }
 
-    public void updateStatus(DeliveryRouteStatus deliveryStatus) {
-        this.deliveryStatus = deliveryStatus;
-    }
-
-    public void updateRouteProgress(DeliveryRouteStatus deliveryStatus, Double actualDistance, Integer actualTime) {
-        this.deliveryStatus = deliveryStatus;
+    public void updateRouteProgress(DeliveryRouteStatus status,
+                                    Double actualDistance,
+                                    Integer actualTime) {
+        this.deliveryStatus = status;
         this.actualDistance = actualDistance;
         this.actualTime = actualTime;
     }
