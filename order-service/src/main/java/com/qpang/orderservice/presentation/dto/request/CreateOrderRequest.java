@@ -13,7 +13,6 @@ public record CreateOrderRequest(
     @NotNull UUID supplyCompanyId,
     @NotNull UUID requestCompanyId,
     @NotNull UUID userId,
-    @NotNull UUID deliveryId,
     @NotNull @Positive Long price,
     @NotNull LocalDateTime desiredArrival,
     String requestMemo,

@@ -20,10 +20,7 @@ public class HubResolver {
 
     private final ProductQueryClient productQueryClient;
 
-    /**
-     * 주문 라인의 상품들로부터 출발 허브를 정한다.
-     * 규칙: 모든 상품의 hubId가 같아야 함 (다르면 예외 — 팀에서 분할 배송 등으로 변경 가능).
-     */
+    //모든 상품의 소속 허브가 같은지
     public UUID resolveFromItems(List<CreateOrderItemCommand> items) {
         if (items == null || items.isEmpty()) {
             throw new CustomException(OrderErrorCode.ORDER_ITEM_INVALID);
