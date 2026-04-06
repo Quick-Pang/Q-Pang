@@ -2,9 +2,11 @@ package com.qpang.common.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Optional;
 
 @Service
@@ -36,5 +38,31 @@ public class RedisService {
     //키의 존재 여부를 확인합니다.
     public boolean hasKey(String key) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }
+
+    // 현재 값이 expected와 같을 때만 새 값으로 교체하고 TTL을 설정합니다.
+    public boolean compareAndSetWithTTL(String key, String expectedValue, Object newValue, Duration duration) {
+        String script = """
+                if redis.call('GET', KEYS[1]) == ARGV[1] then
+                    redis.call('SET', KEYS[1], ARGV[2])
+                    redis.call('EXPIRE', KEYS[1], ARGV[3])
+                    return 1
+                end
+                return 0
+                """;
+
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptText(script);
+        redisScript.setResultType(Long.class);
+
+        Long result = redisTemplate.execute(
+                redisScript,
+                Collections.singletonList(key),
+                expectedValue,
+                String.valueOf(newValue),
+                String.valueOf(duration.getSeconds())
+        );
+
+        return Long.valueOf(1L).equals(result);
     }
 }

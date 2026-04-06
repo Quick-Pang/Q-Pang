@@ -57,16 +57,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(tokenValue)) {
             String token = jwtUtil.substringToken(tokenValue);
 
-            if (token != null && !redisService.hasKey(blacklistKey(token))) {
+            if (token != null) {
                 try {
                     Claims info = jwtUtil.getUserInfoFromToken(token);
+                    if (!JwtUtil.ACCESS_TOKEN_TYPE.equals(info.get(JwtUtil.TOKEN_TYPE_KEY))) {
+                        log.debug("Refresh token is not allowed for authentication");
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        return;
+                    }
+
+                    if (redisService.hasKey(blacklistKey(token))) {
+                        log.debug("Blacklisted JWT token");
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        return;
+                    }
+
                     // 토큰의 subject와 role로 SecurityContext를 채우는코드.
                     setAuthentication(info.getSubject(), (String) info.get(JwtUtil.AUTHORIZATION_KEY));
                 } catch (JwtException | IllegalArgumentException e) {
                     log.debug("Invalid JWT token");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                } catch (RuntimeException e) {
+                    log.error("Redis unavailable while checking blacklist", e);
+                    response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                    return;
                 }
-            } else if (token != null) {
-                log.debug("Blacklisted JWT token");
             }
         }
 

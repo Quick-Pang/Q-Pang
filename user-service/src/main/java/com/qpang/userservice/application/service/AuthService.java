@@ -9,9 +9,13 @@ import com.qpang.userservice.application.dto.auth.AuthTokenPair;
 import com.qpang.userservice.application.dto.auth.LoginCommand;
 import com.qpang.userservice.application.dto.auth.SignupCommand;
 import com.qpang.userservice.application.dto.user.UserInfo;
+import com.qpang.userservice.infrastructure.external.company.CompanyClient;
+import com.qpang.userservice.infrastructure.external.company.CompanyResponseDTO;
+import com.qpang.userservice.infrastructure.external.hub.HubClient;
 import com.qpang.userservice.domain.entity.User;
 import com.qpang.userservice.domain.repository.UserRepository;
 import com.qpang.userservice.exception.UserErrorCode;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -26,7 +30,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuthService {
 
     private static final String REFRESH_TOKEN_KEY_PREFIX = "auth:refresh:";
@@ -37,6 +40,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RedisService redisService;
+    private final HubClient hubClient;
+    private final CompanyClient companyClient;
 
     /**
      * [회원가입]
@@ -51,6 +56,8 @@ public class AuthService {
         if (userRepository.existsByEmail(command.email())) {
             throw new CustomException(UserErrorCode.DUPLICATE_EMAIL);
         }
+
+        validateExternalReferences(command);
 
         String encodedPassword = passwordEncoder.encode(command.password());
         User user = command.toEntity(encodedPassword);
@@ -101,18 +108,38 @@ public class AuthService {
             throw new CustomException(CommonErrorCode.UNAUTHORIZED);
         }
 
-        String username = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
-        String storedRefreshToken = getRefreshToken(username)
-                .orElseThrow(() -> new CustomException(CommonErrorCode.UNAUTHORIZED));
-
-        if (!refreshToken.equals(storedRefreshToken)) {
+        if (!JwtUtil.REFRESH_TOKEN_TYPE.equals(jwtUtil.getUserInfoFromToken(refreshToken).get(JwtUtil.TOKEN_TYPE_KEY))) {
             throw new CustomException(CommonErrorCode.UNAUTHORIZED);
         }
+
+        String username = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
 
         User user = userRepository.findActiveByUsername(username)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
-        return issueTokenPair(user);
+        if (user.getStatus() != UserStatus.APPROVED) {
+            throw new CustomException(UserErrorCode.NOT_APPROVED_USER);
+        }
+
+        String accessToken = jwtUtil.createToken(user.getUsername(), user.getRole());
+        String newRefreshToken = jwtUtil.createRefreshToken(user.getUsername(), user.getRole());
+
+        boolean rotated = redisService.compareAndSetWithTTL(
+                refreshTokenKey(username),
+                refreshToken,
+                resolveToken(newRefreshToken),
+                REFRESH_TOKEN_TTL
+        );
+
+        if (!rotated) {
+            throw new CustomException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        return AuthTokenPair.builder()
+                .userInfo(UserInfo.from(user))
+                .accessToken(accessToken)
+                .refreshToken(newRefreshToken)
+                .build();
     }
 
     /**
@@ -158,17 +185,13 @@ public class AuthService {
     private AuthTokenPair issueTokenPair(User user) {
         String accessToken = jwtUtil.createToken(user.getUsername(), user.getRole());
         String refreshToken = jwtUtil.createRefreshToken(user.getUsername(), user.getRole());
-        redisService.setWithTTL(refreshTokenKey(user.getUsername()), refreshToken, REFRESH_TOKEN_TTL);
+        redisService.setWithTTL(refreshTokenKey(user.getUsername()), resolveToken(refreshToken), REFRESH_TOKEN_TTL);
 
         return AuthTokenPair.builder()
                 .userInfo(UserInfo.from(user))
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
-    }
-
-    private Optional<String> getRefreshToken(String username) {
-        return redisService.get(refreshTokenKey(username)).map(Object::toString);
     }
 
     private void deleteRefreshToken(String username) {
@@ -179,6 +202,49 @@ public class AuthService {
         long ttlMillis = jwtUtil.getExpirationFromToken(accessToken).getTime() - System.currentTimeMillis();
         if (ttlMillis > 0) {
             redisService.setWithTTL(accessTokenBlacklistKey(accessToken), "blacklisted", Duration.ofMillis(ttlMillis));
+        }
+    }
+
+    private void validateExternalReferences(SignupCommand command) {
+        switch (command.role()) {
+            case MASTER -> {
+                return;
+            }
+            case HUB_MANAGER, DELIVERY_MANAGER -> validateHub(command.hubId());
+            case SUPPLIER_MANAGER -> validateCompany(command.companyId());
+        }
+    }
+
+    private void validateHub(java.util.UUID hubId) {
+        if (hubId == null) {
+            throw new CustomException(UserErrorCode.INVALID_SIGNUP_REQUEST);
+        }
+
+        try {
+            hubClient.getHubById(hubId);
+        } catch (FeignException.NotFound e) {
+            throw new CustomException(UserErrorCode.HUB_NOT_FOUND);
+        } catch (FeignException e) {
+            throw new CustomException(CommonErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void validateCompany(java.util.UUID companyId) {
+        if (companyId == null) {
+            throw new CustomException(UserErrorCode.INVALID_SIGNUP_REQUEST);
+        }
+
+        try {
+            CompanyResponseDTO company = companyClient.getCompanyById(companyId).getData();
+            if (company == null
+                    || !"SUPPLIER".equals(company.type())
+                    || !"OPEN".equals(company.status())) {
+                throw new CustomException(UserErrorCode.INVALID_SIGNUP_REQUEST);
+            }
+        } catch (FeignException.NotFound e) {
+            throw new CustomException(UserErrorCode.COMPANY_NOT_FOUND);
+        } catch (FeignException e) {
+            throw new CustomException(CommonErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
