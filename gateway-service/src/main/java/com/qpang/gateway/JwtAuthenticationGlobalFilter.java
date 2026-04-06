@@ -28,8 +28,7 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
     //JWT 없이 연결할 경로
     private static final List<String> PUBLIC_PREFIXES = List.of(
             "/actuator",
-            "/users/login",
-            "/users/signup"
+            "/auth/sign-up"
     );
     @PostConstruct
     void initKey() {
