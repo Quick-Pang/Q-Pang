@@ -6,6 +6,10 @@ spring:
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
   jpa:
     hibernate:
       ddl-auto: update
@@ -36,7 +40,6 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-# JWT Configuration (for future implementation)
-# jwt:
-#   secret: ${JWT_SECRET_KEY}
-#   expiration: 3600000 # 1 hour
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
 
@@ -20,6 +21,8 @@ public class JwtUtil {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String AUTHORIZATION_KEY = "auth";
     public static final String BEARER_PREFIX = "Bearer ";
+    public static final long ACCESS_TOKEN_VALID_TIME = 60 * 60 * 1000L;
+    public static final long REFRESH_TOKEN_VALID_TIME = 14L * 24 * 60 * 60 * 1000L;
 
     @Value("${jwt.secret.key}")
     private String secretKey;
@@ -32,17 +35,23 @@ public class JwtUtil {
     }
 
     public String createToken(String username, UserRole role) {
-        Date date = new Date();
-        long tokenValidTime = 60 * 60 * 1000L; // 1 hour
+        return createToken(username, role, Duration.ofMillis(ACCESS_TOKEN_VALID_TIME));
+    }
 
+    public String createToken(String username, UserRole role, Duration validity) {
+        Date date = new Date();
         return BEARER_PREFIX +
                 Jwts.builder()
                         .subject(username)
                         .claim(AUTHORIZATION_KEY, role.name())
-                        .expiration(new Date(date.getTime() + tokenValidTime))
+                        .expiration(new Date(date.getTime() + validity.toMillis()))
                         .issuedAt(date)
                         .signWith(key)
                         .compact();
+    }
+
+    public String createRefreshToken(String username, UserRole role) {
+        return createToken(username, role, Duration.ofMillis(REFRESH_TOKEN_VALID_TIME));
     }
 
     public boolean validateToken(String token) {
@@ -63,6 +72,10 @@ public class JwtUtil {
 
     public Claims getUserInfoFromToken(String token) {
         return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+    }
+
+    public Date getExpirationFromToken(String token) {
+        return getUserInfoFromToken(token).getExpiration();
     }
 
     public String substringToken(String tokenValue) {

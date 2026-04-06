@@ -36,7 +36,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(authorizeHttpRequests ->
                 authorizeHttpRequests
-                        .requestMatchers("/auth/signup", "/auth/login").permitAll()
+                        .requestMatchers("/auth/signup", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // 관리자 전용 사용자 처리 API는 MASTER 역할만 접근한다.
                         .requestMatchers("/users/{id}/approve", "/users/{id}/reject", "/users/pending", "/users/{id}/role").hasRole("MASTER")

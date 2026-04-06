@@ -1,6 +1,7 @@
 package com.qpang.userservice.infrastructure.security;
 
 import com.qpang.common.security.JwtUtil;
+import com.qpang.common.service.RedisService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -32,9 +33,11 @@ import java.util.Collection;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final RedisService redisService;
     private static final List<String> EXCLUDE_PATHS = List.of(
             "/auth/signup",
-            "/auth/login"
+            "/auth/login",
+            "/auth/refresh"
     );
 
     @Override
@@ -54,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(tokenValue)) {
             String token = jwtUtil.substringToken(tokenValue);
 
-            if (token != null) {
+            if (token != null && !redisService.hasKey(blacklistKey(token))) {
                 try {
                     Claims info = jwtUtil.getUserInfoFromToken(token);
                     // 토큰의 subject와 role로 SecurityContext를 채우는코드.
@@ -62,6 +65,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } catch (JwtException | IllegalArgumentException e) {
                     log.debug("Invalid JWT token");
                 }
+            } else if (token != null) {
+                log.debug("Blacklisted JWT token");
             }
         }
 
@@ -83,5 +88,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 실제 인증은 토큰 기반이므로 비밀번호는 비워둔 UserDetails를 사용한다.
         UserDetails userDetails = new User(username, "", authorities);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    private String blacklistKey(String token) {
+        return "auth:blacklist:" + token;
     }
 }
