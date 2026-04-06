@@ -5,6 +5,7 @@ import com.qpang.common.exception.CustomException;
 import com.qpang.company.domain.entity.Company;
 import com.qpang.company.domain.enums.CompanyStatus;
 import com.qpang.company.domain.enums.CompanyType;
+import com.qpang.company.dto.CreateCompanyCommand;
 import com.qpang.company.exception.CompanyErrorCode;
 import com.qpang.company.repository.CompanyRepository;
 import org.springframework.data.domain.Page;
@@ -25,16 +26,9 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
 
-    public Company create(String name, CompanyType type, UUID hubId, String address, UUID managerUserId) {
-        return companyRepository.save(
-                Company.builder()
-                        .name(name)
-                        .type(type)
-                        .hubId(hubId)
-                        .address(address)
-                        .managerUserId(managerUserId)
-                        .build()
-        );
+    public Company create(CreateCompanyCommand command) {
+        Company company = command.toEntity();
+        return companyRepository.save(company);
     }
 
     @Transactional(readOnly = true)

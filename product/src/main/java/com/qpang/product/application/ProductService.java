@@ -2,8 +2,10 @@ package com.qpang.product.application;
 
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
+import com.qpang.product.client.CompanyClient;
 import com.qpang.product.domain.entity.Product;
 import com.qpang.product.domain.enums.ProductStatus;
+import com.qpang.product.dto.CreateProductCommand;
 import com.qpang.product.exception.ProductErrorCode;
 import com.qpang.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,15 +25,18 @@ import java.util.UUID;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CompanyClient companyClient;
 
-    public Product create(String name, UUID companyId, UUID hubId) {
-        return productRepository.save(
-                Product.builder()
-                        .name(name)
-                        .companyId(companyId)
-                        .hubId(hubId)
-                        .build()
-        );
+    public Product create(CreateProductCommand command) {
+        // 업체 존재 여부 확인
+        try {
+            companyClient.getCompany(command.getCompanyId());
+        } catch (Exception e) {
+            throw new CustomException(ProductErrorCode.COMPANY_NOT_FOUND);
+        }
+
+        Product product = command.toEntity();
+        return productRepository.save(product);
     }
 
     @Transactional(readOnly = true)
@@ -48,6 +53,11 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         if (companyId != null) {
+            try {
+                companyClient.getCompany(companyId);
+            } catch (Exception e) {
+                throw new CustomException(ProductErrorCode.COMPANY_NOT_FOUND);
+            }
             return productRepository.findByCompanyIdAndNameContainingAndDeletedAtIsNull(companyId, name, pageable);
         }
         return productRepository.findByNameContainingAndDeletedAtIsNull(name, pageable);
@@ -70,7 +80,7 @@ public class ProductService {
     }
 
     public void increaseStock(UUID id, int quantity) {
-        if (quantity < 1) {
+        if (quantity < Product.STOCK_QUANTITY) {
             throw new CustomException(ProductErrorCode.INVALID_STOCK_QUANTITY);
         }
         Product product = findById(id);
@@ -81,7 +91,7 @@ public class ProductService {
     }
 
     public void decreaseStock(UUID id, int quantity) {
-        if (quantity < 1) {
+        if (quantity < Product.STOCK_QUANTITY) {
             throw new CustomException(ProductErrorCode.INVALID_STOCK_QUANTITY);
         }
         Product product = findById(id);

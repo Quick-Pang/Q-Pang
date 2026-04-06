@@ -16,6 +16,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Product extends BaseUserEntity {
 
+    public static final int STOCK_QUANTITY = 1;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "product_id", updatable = false, nullable = false)
