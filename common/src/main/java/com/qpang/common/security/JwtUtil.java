@@ -20,6 +20,9 @@ public class JwtUtil {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String AUTHORIZATION_KEY = "auth";
+    public static final String TOKEN_TYPE_KEY = "token_type";
+    public static final String ACCESS_TOKEN_TYPE = "ACCESS";
+    public static final String REFRESH_TOKEN_TYPE = "REFRESH";
     public static final String BEARER_PREFIX = "Bearer ";
     public static final long ACCESS_TOKEN_VALID_TIME = 60 * 60 * 1000L;
     public static final long REFRESH_TOKEN_VALID_TIME = 14L * 24 * 60 * 60 * 1000L;
@@ -35,15 +38,16 @@ public class JwtUtil {
     }
 
     public String createToken(String username, UserRole role) {
-        return createToken(username, role, Duration.ofMillis(ACCESS_TOKEN_VALID_TIME));
+        return createAccessToken(username, role, Duration.ofMillis(ACCESS_TOKEN_VALID_TIME));
     }
 
-    public String createToken(String username, UserRole role, Duration validity) {
+    public String createAccessToken(String username, UserRole role, Duration validity) {
         Date date = new Date();
         return BEARER_PREFIX +
                 Jwts.builder()
                         .subject(username)
                         .claim(AUTHORIZATION_KEY, role.name())
+                        .claim(TOKEN_TYPE_KEY, ACCESS_TOKEN_TYPE)
                         .expiration(new Date(date.getTime() + validity.toMillis()))
                         .issuedAt(date)
                         .signWith(key)
@@ -51,7 +55,16 @@ public class JwtUtil {
     }
 
     public String createRefreshToken(String username, UserRole role) {
-        return createToken(username, role, Duration.ofMillis(REFRESH_TOKEN_VALID_TIME));
+        Date date = new Date();
+        return BEARER_PREFIX +
+                Jwts.builder()
+                        .subject(username)
+                        .claim(AUTHORIZATION_KEY, role.name())
+                        .claim(TOKEN_TYPE_KEY, REFRESH_TOKEN_TYPE)
+                        .expiration(new Date(date.getTime() + REFRESH_TOKEN_VALID_TIME))
+                        .issuedAt(date)
+                        .signWith(key)
+                        .compact();
     }
 
     public boolean validateToken(String token) {

@@ -46,8 +46,12 @@ public class OrderController {
     }
 
     @GetMapping
-    public Page<OrderSummaryResponse> list(Pageable pageable){
-        return orderService.getOrderSummaryList(pageable);
+    public Page<OrderSummaryResponse> list(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "createdAt") String sortBy,
+        @RequestParam(defaultValue = "DESC") String sortDirection){
+        return orderService.getOrderSummaryList(page, size, sortBy, sortDirection);
     }
 
     @PatchMapping("/{orderId}/status")
@@ -55,10 +59,18 @@ public class OrderController {
     public void patchStatus(@PathVariable UUID orderId, @RequestBody @Valid ChangeOrderStatusRequest request){
         orderService.changeOrderStatus(orderId, request.status());
     }
+    
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{orderId}/cancel")
+    public void cancel(@PathVariable UUID orderId){
+        orderService.cancelOrder(orderId);
+    }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{orderId}")
     public void delete(@PathVariable UUID orderId, @RequestParam UUID deletedBy){
         orderService.deleteOrder(orderId, deletedBy);
     }
+
+
 }
