@@ -88,6 +88,6 @@ public class CompanyService {
         if (company.getDeletedAt() != null) {
             throw new CustomException(CompanyErrorCode.COMPANY_ALREADY_DELETED);
         }
-        company.delete(userId);
+//        company.delete(userId);
     }
 }
