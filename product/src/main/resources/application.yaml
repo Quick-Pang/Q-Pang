@@ -16,6 +16,14 @@ spring:
       hibernate:
         format_sql: true
 
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
 server:
   port: 8082
 
@@ -26,4 +34,9 @@ eureka:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:bPosfkVbiUZD7LJ+lap3bxIcC/NVxHTXyRmWQ47hih1ND9jevbxbkqX4krCS45+6FCe2CEjgQwHFk2iGx5Q/9A==}
+    key: ${JWT_SECRET_KEY}
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
