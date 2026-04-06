@@ -82,6 +82,7 @@ public class Delivery extends BaseUserEntity {
         this.deliveryStatus = deliveryStatus;
     }
 
+
     public void updateInfo(String deliveryAddress, String receiverName, String receiverSlackId) {
         this.deliveryAddress = deliveryAddress;
         this.receiverName = receiverName;

@@ -33,13 +33,13 @@ public class DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final DeliveryRouteRepository deliveryRouteRepository;
     private final HubServiceClient hubServiceClient;
+    private final SlackMessageService slackMessageService;
 
     // 배송 생성 todo: 출발 허브 담당 도메인 정하기, 허브 도메인에게 이동 경로 받아오기 연동할기
     @Transactional
     public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command) {
         validateCreateDeliveryCommand(command);
 
-        //todo: 허브 도메인에게 출발 허브랑 도착지 전달 -> 허브 간 이동 경로 받아오ㅓ기
         GetDeliveryInfoResponse deliveryInfo = hubServiceClient.getHubRoute(
                 new GetHubRouteRequest(
                         command.getSourceHubId(),
@@ -56,10 +56,11 @@ public class DeliveryService {
                 command.getReceiverSlackId()
         );
 
-        //배송 경로 생성
+        Delivery savedDelivery = deliveryRepository.save(delivery);
+
         List<DeliveryRoute> routeList = deliveryInfo.getRoutes().stream()
                 .map(route -> DeliveryRoute.create(
-                        delivery.getId(),
+                        savedDelivery.getId(),
                         route.getSequence(),
                         route.getSourceHubId(),
                         route.getDestHubId(),
@@ -69,11 +70,42 @@ public class DeliveryService {
                 ))
                 .toList();
 
-
         deliveryRouteRepository.saveAll(routeList);
-        Delivery savedDelivery = deliveryRepository.save(delivery);
+
+        try {
+            sendSlackNotification(savedDelivery);
+        } catch (Exception e) {
+            System.out.println("슬랙 알림 전송 실패: " + e.getMessage());
+        }
 
         return CreateDeliveryResponse.from(savedDelivery);
+    }
+
+    private void sendSlackNotification(Delivery delivery) {
+        String message = """
+        🚚 배송 생성 알림
+
+        주문 ID: %s
+        출발 허브: %s
+        도착 허브: %s
+        수령인: %s
+        주소: %s
+        """.formatted(
+                delivery.getOrderId(),
+                delivery.getSourceHubId(),
+                delivery.getDestHubId(),
+                delivery.getReceiverName(),
+                delivery.getDeliveryAddress()
+        );
+
+        CreateSlackMessageRequest request = new CreateSlackMessageRequest();
+//        request.setReceiverSlackId(); //todo: 허브 담당자에게 슬랙으로 바꾸기
+        request.setMessage(message);
+        request.setSenderUserId(null);
+        request.setRelatedType("DELIVERY");
+        request.setRelatedId(delivery.getId());
+
+        slackMessageService.createAndSendSlackMessage(request);
     }
 
     // 배송 단건 조회
@@ -194,24 +226,62 @@ public class DeliveryService {
         delivery.updateStatus(deliveryStatus);
     }
 
-    // 배송 경로 상태 수정
+//    // 배송 경로 상태 수정
     @Transactional
     public void updateDeliveryRouteStatus(UUID deliveryRouteId, UpdateDeliveryRouteStatusRequest request) {
         validateId(deliveryRouteId);
         validateUpdateDeliveryRouteStatusRequest(request);
 
-        DeliveryRoute deliveryRoute = deliveryRouteRepository.findById(deliveryRouteId)
+        DeliveryRoute deliveryRoute = deliveryRouteRepository.findByIdAndDeletedAtIsNull(deliveryRouteId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_ROUTE_NOT_FOUND));
-
-        if (deliveryRoute.getDeletedAt() != null) {
-            throw new CustomException(DeliveryErrorCode.DELIVERY_ROUTE_ALREADY_DELETED);
-        }
 
         deliveryRoute.updateRouteProgress(
                 request.getDeliveryStatus(),
                 request.getActualDistance(),
                 request.getActualTime()
         );
+
+        updateDeliveryStatusByRoutes(deliveryRoute.getDeliveryId());
+    }
+
+    //전체 배송 경로 상태 자동 수정
+    private void updateDeliveryStatusByRoutes(UUID deliveryId) {
+        List<DeliveryRoute> routes =
+                deliveryRouteRepository.findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(deliveryId);
+
+        if (routes.isEmpty()) {
+            return;
+        }
+
+        Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
+                .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+
+        boolean allWaiting = routes.stream()
+                .allMatch(route -> route.getDeliveryStatus() == DeliveryRouteStatus.WAITING_AT_HUB);
+
+        boolean allDelivered = routes.stream()
+                .allMatch(route -> route.getDeliveryStatus() == DeliveryRouteStatus.DELIVERED);
+
+        boolean hasInProgress = routes.stream()
+                .anyMatch(route ->
+                        route.getDeliveryStatus() == DeliveryRouteStatus.IN_TRANSIT_HUB ||
+                        route.getDeliveryStatus() == DeliveryRouteStatus.ARRIVED_AT_DEST_HUB ||
+                        route.getDeliveryStatus() == DeliveryRouteStatus.OUT_FOR_DELIVERY
+                );
+
+        if (allDelivered) {
+            delivery.updateStatus(DeliveryStatus.COMPLETED);
+            return;
+        }
+
+        if (hasInProgress) {
+            delivery.updateStatus(DeliveryStatus.IN_PROGRESS);
+            return;
+        }
+
+        if (allWaiting) {
+            delivery.updateStatus(DeliveryStatus.WAITING);
+        }
     }
 
     // 배송 삭제
@@ -220,30 +290,33 @@ public class DeliveryService {
         validateId(deliveryId);
         validateId(deletedBy);
 
-        Delivery delivery = deliveryRepository.findById(deliveryId)
+        Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
 
-        if (delivery.getDeletedAt() != null) {
-            throw new CustomException(DeliveryErrorCode.DELIVERY_ALREADY_DELETED);
+        List<DeliveryRoute> routes =
+                deliveryRouteRepository.findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(deliveryId);
+
+        for (DeliveryRoute route : routes) {
+            route.delete(deletedBy);
         }
 
         delivery.delete(deletedBy);
     }
 
-    private void validateCreateDeliveryCommand(CreateDeliveryCommand request) {
-        if (request == null ||
-                request.getOrderId() == null ||
-                request.getSourceHubId() == null ||
-                request.getDeliveryAddress() == null || request.getDeliveryAddress().isBlank() ||
-                request.getReceiverName() == null || request.getReceiverName().isBlank()) {
+    private void validateCreateDeliveryCommand(CreateDeliveryCommand command) {
+        if (command == null ||
+                command.getOrderId() == null ||
+                command.getSourceHubId() == null ||
+                command.getDeliveryAddress() == null || command.getDeliveryAddress().trim().isEmpty() ||
+                command.getReceiverName() == null || command.getReceiverName().trim().isEmpty()) {
             throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_INPUT);
         }
     }
 
     private void validateUpdateDeliveryRequest(UpdateDeliveryRequest request) {
         if (request == null ||
-                request.getDeliveryAddress() == null || request.getDeliveryAddress().isBlank() ||
-                request.getReceiverName() == null || request.getReceiverName().isBlank()) {
+                request.getDeliveryAddress() == null || request.getDeliveryAddress().trim().isEmpty() ||
+                request.getReceiverName() == null || request.getReceiverName().trim().isEmpty()) {
             throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_INPUT);
         }
     }
@@ -251,6 +324,10 @@ public class DeliveryService {
     private void validateUpdateDeliveryRouteStatusRequest(UpdateDeliveryRouteStatusRequest request) {
         if (request == null || request.getDeliveryStatus() == null) {
             throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_ROUTE_STATUS);
+        }
+
+        if (request.getActualDistance() == null || request.getActualTime() == null) {
+            throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_ROUTE_INPUT);
         }
 
         if (request.getActualDistance() < 0 || request.getActualTime() < 0) {
