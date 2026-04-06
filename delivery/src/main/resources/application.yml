@@ -26,3 +26,7 @@ eureka:
 
 slack:
   webhook-url: test
+
+jwt:
+  secret:
+    key: ZGVsaXZlcnktc2VjcmV0LWtleS1kZWxpdmVyeS1zZWNyZXQta2V5LWRlbGl2ZXJ5

@@ -29,6 +29,11 @@ spring:
           predicates:
             - Path=/products/**
 
+        - id: delivery-service
+          uri: lb://delivery-service
+          predicates:
+            - Path=/deliveries/**,/messages/**,/ai/**
+
 server:
   port: 8080
 
@@ -39,4 +44,4 @@ eureka:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_BASE64}
+    key: ZGVsaXZlcnktc2VjcmV0LWtleS1kZWxpdmVyeS1zZWNyZXQta2V5LWRlbGl2ZXJ5
