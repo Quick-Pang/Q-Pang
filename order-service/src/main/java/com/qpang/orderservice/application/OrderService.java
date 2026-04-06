@@ -2,13 +2,13 @@ package com.qpang.orderservice.application;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
 import com.qpang.orderservice.domain.OrderStatus;
 import com.qpang.orderservice.domain.entity.Order;
 import com.qpang.orderservice.domain.entity.OrderItem;
 import com.qpang.orderservice.domain.repository.OrderRepository;
 import com.qpang.orderservice.exception.OrderErrorCode;
+import com.qpang.orderservice.infrastructure.client.DeliveryClient;
 import com.qpang.orderservice.infrastructure.client.ProductStockClient;
 import com.qpang.orderservice.infrastructure.client.ProductStockFeignRequest;
 import com.qpang.orderservice.presentation.dto.request.CreateOrderRequest;
@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductStockClient productStockClient;
+    private final DeliveryClient deliveryClient;
     private static final List<Integer> ALLOWED_PAGE_SIZES = List.of(10, 30, 50);
 
     public Order createOrder(CreateOrderCommand command){
@@ -54,20 +55,29 @@ public class OrderService {
     }
 
     public OrderResponse createOrderFromRequest(CreateOrderRequest req){
+        List<CreateOrderItemCommand> lines =
+                req.items().stream().map(i -> new CreateOrderItemCommand(i.productId(), i.quantity())).toList();
+
         CreateOrderCommand command = new CreateOrderCommand(
             req.supplyCompanyId(),
             req.requestCompanyId(),
             req.userId(),
-            req.deliveryId(),
             req.price(),
             req.desiredArrival(),
             req.requestMemo(),
             req.createdBy(),
-            req.items().stream().map(i -> new CreateOrderItemCommand(i.productId(), i.quantity())).toList()
+            lines
         );
 
-
-        return OrderResponse.from(createOrder(command));
+        Order order = createOrder(command);
+        var deliveryRes = deliveryClient.create(
+                new DeliveryClient.CreateDeliveryRequest(
+                        order.getId(),
+                        order.getSupplyCompanyId(),
+                        order.getRequestCompanyId()));
+        order.assignDelivery(deliveryRes.deliveryId());
+        orderRepository.save(order);
+        return OrderResponse.from(order);
     }
 
     @Transactional(readOnly = true)
@@ -77,7 +87,7 @@ public class OrderService {
 
     private Pageable pageable(int page, int size, String sortBy, String sortDirection){
         int pageSize = ALLOWED_PAGE_SIZES.contains(size) ? size : 10;
-        String property = "updatedAt".equalsIgnoreCase(sortDirection) ? "updatedAt" : "createdAt";
+        String property = "updatedAt".equalsIgnoreCase(sortBy) ? "updatedAt" : "createdAt";
         Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         return PageRequest.of(page, pageSize, Sort.by(direction, property));
