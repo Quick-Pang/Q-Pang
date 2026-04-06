@@ -5,6 +5,7 @@ import com.qpang.common.exception.CustomException;
 import com.qpang.hub.application.dto.HubRouteResponseDto;
 import com.qpang.hub.domain.model.Hub;
 import com.qpang.hub.domain.model.HubRoute;
+import com.qpang.hub.domain.model.HubType;
 import com.qpang.hub.domain.repository.HubRepository;
 import com.qpang.hub.domain.repository.HubRouteRepository;
 import lombok.RequiredArgsConstructor;
@@ -89,14 +90,20 @@ public class HubRouteService {
     }
 
     private Hub getCenterHub(Hub hub) {
-        if (hub.getHubType().name().equals("CENTER")) {
+
+        if (hub.getHubType() == HubType.CENTER) {
             return hub;
         }
 
-        if (hub.getCenterHub() == null) {
+        Hub center = hub.getCenterHub();
+        if (center == null) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
 
-        return hub.getCenterHub();
+        if (center.getHubType() != HubType.CENTER) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        return center;
     }
 }
