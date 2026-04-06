@@ -106,12 +106,6 @@ public class AuthService {
         }
 
         String username = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
-        String storedRefreshToken = getRefreshToken(username)
-                .orElseThrow(() -> new CustomException(CommonErrorCode.UNAUTHORIZED));
-
-        if (!refreshToken.equals(storedRefreshToken)) {
-            throw new CustomException(CommonErrorCode.UNAUTHORIZED);
-        }
 
         User user = userRepository.findActiveByUsername(username)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
@@ -120,7 +114,25 @@ public class AuthService {
             throw new CustomException(UserErrorCode.NOT_APPROVED_USER);
         }
 
-        return issueTokenPair(user);
+        String accessToken = jwtUtil.createToken(user.getUsername(), user.getRole());
+        String newRefreshToken = jwtUtil.createRefreshToken(user.getUsername(), user.getRole());
+
+        boolean rotated = redisService.compareAndSetWithTTL(
+                refreshTokenKey(username),
+                refreshToken,
+                resolveToken(newRefreshToken),
+                REFRESH_TOKEN_TTL
+        );
+
+        if (!rotated) {
+            throw new CustomException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        return AuthTokenPair.builder()
+                .userInfo(UserInfo.from(user))
+                .accessToken(accessToken)
+                .refreshToken(newRefreshToken)
+                .build();
     }
 
     /**
@@ -173,10 +185,6 @@ public class AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
-    }
-
-    private Optional<String> getRefreshToken(String username) {
-        return redisService.get(refreshTokenKey(username)).map(Object::toString);
     }
 
     private void deleteRefreshToken(String username) {
