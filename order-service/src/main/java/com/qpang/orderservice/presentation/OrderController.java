@@ -55,10 +55,18 @@ public class OrderController {
     public void patchStatus(@PathVariable UUID orderId, @RequestBody @Valid ChangeOrderStatusRequest request){
         orderService.changeOrderStatus(orderId, request.status());
     }
+    
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{orderId}/cancel")
+    public void cancel(@PathVariable UUID orderId){
+        orderService.cancelOrder(orderId);
+    }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{orderId}")
     public void delete(@PathVariable UUID orderId, @RequestParam UUID deletedBy){
         orderService.deleteOrder(orderId, deletedBy);
     }
+
+
 }

@@ -6,8 +6,11 @@ import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
 import com.qpang.orderservice.domain.OrderStatus;
 import com.qpang.orderservice.domain.entity.Order;
+import com.qpang.orderservice.domain.entity.OrderItem;
 import com.qpang.orderservice.domain.repository.OrderRepository;
 import com.qpang.orderservice.exception.OrderErrorCode;
+import com.qpang.orderservice.infrastructure.client.ProductStockClient;
+import com.qpang.orderservice.infrastructure.client.ProductStockFeignRequest;
 import com.qpang.orderservice.presentation.dto.request.CreateOrderRequest;
 import com.qpang.orderservice.presentation.dto.response.OrderResponse;
 import com.qpang.orderservice.presentation.dto.response.OrderSummaryResponse;
@@ -26,9 +29,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final ProductStockClient productStockClient;
 
     public Order createOrder(CreateOrderCommand command){
-        return orderRepository.save(command.toOrder());
+        for(var item : command.items()){
+            productStockClient.decreaseStock(
+                item.productId(),
+                new ProductStockFeignRequest(item.quantity()));
+        }try{
+            return orderRepository.save(command.toOrder());
+        }catch(RuntimeException e){
+            for(var item : command.items()){
+                try{
+                    productStockClient.increaseStock(
+                        item.productId(),
+                        new ProductStockFeignRequest(item.quantity()));
+                } catch(Exception i){}
+            }
+            throw e;
+        }
     }
 
     public OrderResponse createOrderFromRequest(CreateOrderRequest req){
@@ -77,6 +96,19 @@ public class OrderService {
     public void changeOrderStatus(UUID orderId, OrderStatus newStatus){
         Order order = getActiveOrder(orderId);
         order.changeStatus(newStatus);
+    }
+
+    public void cancelOrder(UUID orderId){
+        Order order = getOrder(orderId);
+        if(order.getStatus() == OrderStatus.CANCELLED){
+            throw new CustomException(OrderErrorCode.ORDER_ALREADY_CANCELED);
+        }
+        for(OrderItem line : order.getItems()){
+            productStockClient.increaseStock(
+                line.getProductId(),
+                new ProductStockFeignRequest(line.getQuantity()));
+        }
+        order.changeStatus(OrderStatus.CANCELLED);
     }
 
     public void deleteOrder(UUID orderId, UUID deletedBy){
