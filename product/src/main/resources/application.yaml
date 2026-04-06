@@ -34,7 +34,7 @@ eureka:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:bPosfkVbiUZD7LJ+lap3bxIcC/NVxHTXyRmWQ47hih1ND9jevbxbkqX4krCS45+6FCe2CEjgQwHFk2iGx5Q/9A==}
+    key: ${JWT_SECRET_KEY}
 
 logging:
   pattern:
