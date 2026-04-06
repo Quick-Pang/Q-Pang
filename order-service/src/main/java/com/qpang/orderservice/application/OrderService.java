@@ -7,6 +7,7 @@ import com.qpang.common.exception.CustomException;
 import com.qpang.orderservice.domain.OrderStatus;
 import com.qpang.orderservice.domain.entity.Order;
 import com.qpang.orderservice.domain.repository.OrderRepository;
+import com.qpang.orderservice.exception.OrderErrorCode;
 import com.qpang.orderservice.presentation.dto.request.CreateOrderRequest;
 import com.qpang.orderservice.presentation.dto.response.OrderResponse;
 import com.qpang.orderservice.presentation.dto.response.OrderSummaryResponse;
@@ -27,20 +28,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     public Order createOrder(CreateOrderCommand command){
-        Order order = Order.create(
-            command.supplyCompanyId(),
-            command.requestCompanyId(),
-            command.userId(),
-            command.deliveryId(),
-            command.price(),
-            command.desiredArrival(),
-            command.requestMemo(),
-            command.createdBy()
-        );
-        for(CreateOrderItemCommand itemCommand : command.items()){
-            order.addItem(itemCommand.productId(),itemCommand.quantity(),command.createdBy());
-        }
-        return orderRepository.save(order);
+        return orderRepository.save(command.toOrder());
     }
 
     public OrderResponse createOrderFromRequest(CreateOrderRequest req){
@@ -97,6 +85,12 @@ public class OrderService {
     }
 
     private Order getActiveOrder(UUID orderId){
-        return orderRepository.findByIdAndDeletedAtIsNull(orderId).orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
+        return orderRepository.findById(orderId).map(order->{
+            if(order.getDeletedAt() != null){
+                throw new CustomException(OrderErrorCode.ORDER_ALREADY_DELETED);
+            }
+            return order;
+        }).orElseThrow(() 
+                   -> new CustomException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 }
