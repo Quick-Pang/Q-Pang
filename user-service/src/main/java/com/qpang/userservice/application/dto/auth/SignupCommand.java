@@ -2,7 +2,9 @@ package com.qpang.userservice.application.dto.auth;
 
 import com.qpang.common.entity.UserRole;
 import com.qpang.common.entity.UserStatus;
+import com.qpang.common.exception.CustomException;
 import com.qpang.userservice.domain.entity.*;
+import com.qpang.userservice.exception.UserErrorCode;
 import lombok.Builder;
 
 import java.util.UUID;
@@ -19,6 +21,8 @@ public record SignupCommand(
 ) {
     // role 값에 따라 실제 저장할 하위 User 엔티티를 생성한다.
     public User toEntity(String encodedPassword) {
+        validateRoleSpecificFields();
+
         return switch (role) {
             case MASTER -> MasterUser.builder()
                     .username(username)
@@ -51,6 +55,22 @@ public record SignupCommand(
                     .status(UserStatus.PENDING)
                     .companyId(companyId)
                     .build();
-        };
+            };
+    }
+
+    private void validateRoleSpecificFields() {
+        switch (role) {
+            case MASTER -> throw new CustomException(UserErrorCode.INVALID_SIGNUP_REQUEST);
+            case HUB_MANAGER, DELIVERY_MANAGER -> {
+                if (hubId == null) {
+                    throw new CustomException(UserErrorCode.INVALID_SIGNUP_REQUEST);
+                }
+            }
+            case SUPPLIER_MANAGER -> {
+                if (companyId == null) {
+                    throw new CustomException(UserErrorCode.INVALID_SIGNUP_REQUEST);
+                }
+            }
+        }
     }
 }

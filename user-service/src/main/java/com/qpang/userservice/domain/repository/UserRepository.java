@@ -11,15 +11,25 @@ public interface UserRepository {
 
     User save(User user);
 
+    User saveAndFlush(User user);
+
     Optional<User> findById(UUID id);
 
+    Optional<User> findActiveById(UUID id);
+
     Optional<User> findByUsername(String username);
+
+    Optional<User> findActiveByUsername(String username);
 
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
 
+    boolean existsByEmailAndIdNot(String email, UUID id);
+
     Page<User> findAll(Pageable pageable);
+
+    Page<User> findAllActive(Pageable pageable);
 
     Page<User> findAllPendingUsers(Pageable pageable);
 

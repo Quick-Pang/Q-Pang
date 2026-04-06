@@ -28,9 +28,7 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public UserInfo getUser(UUID id) {
-        // soft delete 된 데이터는 조회 결과에서 제외한다.
-        User user = userRepository.findById(id)
-                .filter(u -> u.getDeletedAt() == null)
+        User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         return UserInfo.from(user);
     }
@@ -41,7 +39,7 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public Page<UserInfo> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable)
+        return userRepository.findAllActive(pageable)
                 .map(UserInfo::from);
     }
 
@@ -50,12 +48,16 @@ public class UserService {
      * 엔티티의 updateInfo 메서드에 위임하여 상태를 변경합니다.
      */
     public UserInfo updateUser(UUID id, UserUpdateCommand command) {
-        // 존재하지 않는 사용자는 수정 대상이 아니다.
-        User user = userRepository.findById(id)
+        User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+
+        if (userRepository.existsByEmailAndIdNot(command.email(), id)) {
+            throw new CustomException(UserErrorCode.DUPLICATE_EMAIL);
+        }
 
         // 프로필 변경 규칙은 엔티티 내부로 위임한다.
         user.updateInfo(command.nickname(), command.email(), command.isPublic());
+        userRepository.saveAndFlush(user);
         return UserInfo.from(user);
     }
 
@@ -65,7 +67,7 @@ public class UserService {
      */
     public void deleteUser(UUID id, Long deletedBy) {
         // 삭제는 실제 row 삭제가 아니라 soft delete 처리다.
-        User user = userRepository.findById(id)
+        User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         user.delete(deletedBy);
     }
@@ -77,7 +79,7 @@ public class UserService {
      */
     public void approveUser(UUID id) {
         // 승인 가능 여부는 엔티티 상태 전이 규칙에 맡긴다.
-        User user = userRepository.findById(id)
+        User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         user.approve();
     }
@@ -89,7 +91,7 @@ public class UserService {
      */
     public void rejectUser(UUID id) {
         // 거절 가능 여부도 엔티티 상태 전이 규칙을 따른다.
-        User user = userRepository.findById(id)
+        User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         user.reject();
     }
@@ -100,7 +102,7 @@ public class UserService {
      */
     public void updateRole(UUID id, UserRole newRole) {
         // 권한 변경은 관리자 유스케이스로만 허용한다.
-        User user = userRepository.findById(id)
+        User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         user.updateRole(newRole);
     }

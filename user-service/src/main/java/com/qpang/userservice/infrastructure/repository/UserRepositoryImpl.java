@@ -23,13 +23,28 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public User saveAndFlush(User user) {
+        return userJpaRepository.saveAndFlush(user);
+    }
+
+    @Override
     public Optional<User> findById(UUID id) {
         return userJpaRepository.findById(id);
     }
 
     @Override
+    public Optional<User> findActiveById(UUID id) {
+        return userJpaRepository.findActiveById(id);
+    }
+
+    @Override
     public Optional<User> findByUsername(String username) {
         return userJpaRepository.findByUsername(username);
+    }
+
+    @Override
+    public Optional<User> findActiveByUsername(String username) {
+        return userJpaRepository.findActiveByUsername(username);
     }
 
     @Override
@@ -43,8 +58,18 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public boolean existsByEmailAndIdNot(String email, UUID id) {
+        return userJpaRepository.existsByEmailAndIdNot(email, id);
+    }
+
+    @Override
     public Page<User> findAll(Pageable pageable) {
         return userJpaRepository.findAll(pageable);
+    }
+
+    @Override
+    public Page<User> findAllActive(Pageable pageable) {
+        return userJpaRepository.findAllActive(pageable);
     }
 
     @Override

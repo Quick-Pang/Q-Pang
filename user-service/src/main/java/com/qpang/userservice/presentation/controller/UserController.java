@@ -59,7 +59,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(
             @PathVariable UUID id,
-            @RequestHeader("X-User-Id") Long deletedBy) {
+            @RequestHeader("X-Deleted-By") Long deletedBy) {
         userService.deleteUser(id, deletedBy);
         return ResponseEntity.noContent().build();
     }
@@ -98,7 +98,7 @@ public class UserController {
 
     // 9. 권한 수정 (MASTER)
     @PatchMapping("/{id}/role")
-    public ResponseEntity<Void> updateRole(@PathVariable UUID id, @RequestBody RoleUpdateRequest request) {
+    public ResponseEntity<Void> updateRole(@PathVariable UUID id, @Valid @RequestBody RoleUpdateRequest request) {
         userService.updateRole(id, request.role());
         return ResponseEntity.noContent().build();
     }
