@@ -57,7 +57,7 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
 
     private static final List<String> PUBLIC_PREFIXES = List.of(
             "/actuator",
-            "/auth/sign-up"
+            "/auth/"
     );
 
     @Override

@@ -16,7 +16,7 @@ spring:
           predicates:
             - Path=/orders/**
 
-        # delivery (@RequestMapping("/deliveries") — spring.application.name 이 delivery 일 때)
+        # delivery
         - id: delivery
           uri: lb://delivery
           predicates:
