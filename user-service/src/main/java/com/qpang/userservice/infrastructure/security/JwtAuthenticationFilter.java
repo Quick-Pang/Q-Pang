@@ -1,6 +1,7 @@
 package com.qpang.userservice.infrastructure.security;
 
 import com.qpang.common.security.JwtUtil;
+import com.qpang.common.service.RedisService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -32,9 +33,11 @@ import java.util.Collection;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final RedisService redisService;
     private static final List<String> EXCLUDE_PATHS = List.of(
             "/auth/signup",
-            "/auth/login"
+            "/auth/login",
+            "/auth/refresh"
     );
 
     @Override
@@ -57,10 +60,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (token != null) {
                 try {
                     Claims info = jwtUtil.getUserInfoFromToken(token);
+                    if (!JwtUtil.ACCESS_TOKEN_TYPE.equals(info.get(JwtUtil.TOKEN_TYPE_KEY))) {
+                        log.debug("Refresh token is not allowed for authentication");
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        return;
+                    }
+
+                    if (redisService.hasKey(blacklistKey(token))) {
+                        log.debug("Blacklisted JWT token");
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        return;
+                    }
+
                     // 토큰의 subject와 role로 SecurityContext를 채우는코드.
                     setAuthentication(info.getSubject(), (String) info.get(JwtUtil.AUTHORIZATION_KEY));
                 } catch (JwtException | IllegalArgumentException e) {
                     log.debug("Invalid JWT token");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                } catch (RuntimeException e) {
+                    log.error("Redis unavailable while checking blacklist", e);
+                    response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                    return;
                 }
             }
         }
@@ -83,5 +104,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 실제 인증은 토큰 기반이므로 비밀번호는 비워둔 UserDetails를 사용한다.
         UserDetails userDetails = new User(username, "", authorities);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    private String blacklistKey(String token) {
+        return "auth:blacklist:" + token;
     }
 }
