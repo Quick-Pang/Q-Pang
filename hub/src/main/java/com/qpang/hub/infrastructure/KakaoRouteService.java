@@ -1,5 +1,7 @@
 package com.qpang.hub.infrastructure;
 
+import com.qpang.common.exception.CommonErrorCode;
+import com.qpang.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -42,29 +44,29 @@ public class KakaoRouteService {
 
             Map<String, Object> body = response.getBody();
             if (body == null || !body.containsKey("routes")) {
-                throw new IllegalStateException("Kakao API 응답에 routes가 없습니다.");
+                throw new CustomException(CommonErrorCode.INVALID_KAKAO_ROUTE_RESPONSE);
             }
 
             List<Map<String, Object>> routes = (List<Map<String, Object>>) body.get("routes");
             if (routes == null || routes.isEmpty()) {
-                throw new IllegalStateException("Kakao API routes가 비어 있습니다.");
+                throw new CustomException(CommonErrorCode.INVALID_KAKAO_ROUTE_RESPONSE);
             }
 
             Map<String, Object> route = routes.get(0);
             Map<String, Object> summary = (Map<String, Object>) route.get("summary");
             if (summary == null) {
-                throw new IllegalStateException("Kakao API summary가 없습니다.");
+                throw new CustomException(CommonErrorCode.INVALID_KAKAO_ROUTE_RESPONSE);
             }
 
             Object distanceObj = summary.get("distance");
             Object durationObj = summary.get("duration");
 
             if (!(distanceObj instanceof Number distanceNumber)) {
-                throw new IllegalStateException("Kakao API distance 값이 없습니다.");
+                throw new CustomException(CommonErrorCode.INVALID_KAKAO_ROUTE_RESPONSE);
             }
 
             if (!(durationObj instanceof Number durationNumber)) {
-                throw new IllegalStateException("Kakao API duration 값이 없습니다.");
+                throw new CustomException(CommonErrorCode.INVALID_KAKAO_ROUTE_RESPONSE);
             }
 
             BigDecimal distanceKm = BigDecimal
@@ -74,19 +76,19 @@ public class KakaoRouteService {
             int durationMin = durationNumber.intValue() / 60;
 
             if (distanceKm.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalStateException("Kakao API distance 값이 0 이하입니다.");
+                throw new CustomException(CommonErrorCode.INVALID_KAKAO_ROUTE_RESPONSE);
             }
 
             if (durationMin <= 0) {
-                throw new IllegalStateException("Kakao API duration 값이 0 이하입니다.");
+                throw new CustomException(CommonErrorCode.INVALID_KAKAO_ROUTE_RESPONSE);
             }
 
             return new RouteInfo(distanceKm, durationMin);
 
         } catch (ResourceAccessException e) {
-            throw new IllegalStateException("Kakao API timeout 또는 네트워크 오류", e);
+            throw new CustomException(CommonErrorCode.KAKAO_ROUTE_API_ERROR);
         } catch (RestClientException e) {
-            throw new IllegalStateException("Kakao API 호출 실패", e);
+            throw new CustomException(CommonErrorCode.KAKAO_ROUTE_API_ERROR);
         }
     }
 

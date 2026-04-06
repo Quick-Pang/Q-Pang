@@ -19,7 +19,10 @@ public enum CommonErrorCode implements ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다."),
 
     // --- 리소스 ---
-    NOT_FOUND(HttpStatus.NOT_FOUND, "데이터를 찾을 수 없습니다.");
+    NOT_FOUND(HttpStatus.NOT_FOUND, "데이터를 찾을 수 없습니다."),
+
+    KAKAO_ROUTE_API_ERROR(HttpStatus.BAD_GATEWAY, "카카오 경로 API 호출에 실패했습니다."),
+    INVALID_KAKAO_ROUTE_RESPONSE(HttpStatus.BAD_GATEWAY, "카카오 경로 API 응답이 올바르지 않습니다.");
 
     private final HttpStatus status;
     private final String message;
