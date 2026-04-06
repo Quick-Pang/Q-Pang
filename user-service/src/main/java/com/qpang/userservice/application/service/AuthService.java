@@ -8,6 +8,7 @@ import com.qpang.userservice.domain.entity.User;
 import com.qpang.userservice.domain.repository.UserRepository;
 import com.qpang.userservice.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,9 +43,19 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(command.password());
         User user = command.toEntity(encodedPassword);
         
-        // 가입 직후에는 아직 승인 전 상태로 저장한다.
-        User savedUser = userRepository.save(user);
-        return UserInfo.from(savedUser);
+        try {
+            // 가입 직후에는 아직 승인 전 상태로 저장한다.
+            User savedUser = userRepository.saveAndFlush(user);
+            return UserInfo.from(savedUser);
+        } catch (DataIntegrityViolationException e) {
+            if (userRepository.existsByUsername(command.username())) {
+                throw new CustomException(UserErrorCode.DUPLICATE_USERNAME);
+            }
+            if (userRepository.existsByEmail(command.email())) {
+                throw new CustomException(UserErrorCode.DUPLICATE_EMAIL);
+            }
+            throw e;
+        }
     }
 
     /**
@@ -56,7 +67,7 @@ public class AuthService {
      */
     @Transactional(readOnly = true)
     public UserInfo login(LoginCommand command) {
-        User user = userRepository.findByUsername(command.username())
+        User user = userRepository.findActiveByUsername(command.username())
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // 입력한 비밀번호가 저장된 해시와 일치하는지 확인한다.

@@ -20,3 +20,10 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:9090/eureka
+
+server:
+  port: 8085
+
+kakao:
+  api:
+    key: ${KAKAO_API_KEY}
