@@ -1,7 +1,8 @@
 package com.qpang.hub.presentation.dto;
 
-import com.qpang.hub.application.dto.HubCreateCommand; // 추가
-import com.qpang.hub.application.dto.HubInitCommand;
+import com.qpang.hub.application.dto.HubCreateCommand;
+import com.qpang.hub.domain.model.HubType;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -10,13 +11,19 @@ public record HubCreateRequest(
         String address,
         BigDecimal latitude,
         BigDecimal longitude,
-        UUID managerId
+        UUID managerId,
+        HubType hubType,
+        UUID centerHubId
 ) {
-    public HubInitCommand toInitCommand() {
-        return new HubInitCommand(name, address, latitude, longitude, managerId);
-    }
-
-    public HubCreateCommand toCreateCommand() {
-        return new HubCreateCommand(name, address, latitude, longitude, managerId);
+    public HubCreateCommand toCommand() {
+        return new HubCreateCommand(
+                this.name,
+                this.address,
+                this.latitude,
+                this.longitude,
+                this.managerId,
+                this.hubType,
+                this.centerHubId
+        );
     }
 }

@@ -25,9 +25,11 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<APIResponse<ProductResponse>> create(@Valid @RequestBody ProductCreateRequest request) {
         Product product = productService.create(
-                request.getName(),
-                request.getCompanyId(),
-                request.getHubId()
+                CreateProductCommand.builder()
+                        .name(request.getName())
+                        .companyId(request.getCompanyId())
+                        .hubId(request.getHubId())
+                        .build()
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(APIResponse.success(ProductResponse.from(product)));

@@ -2,10 +2,7 @@ package com.qpang.company.presentation;
 import com.qpang.common.response.APIResponse;
 import com.qpang.company.application.CompanyService;
 import com.qpang.company.domain.entity.Company;
-import com.qpang.company.dto.CompanyCreateRequest;
-import com.qpang.company.dto.CompanyResponse;
-import com.qpang.company.dto.CompanyStatusUpdateRequest;
-import com.qpang.company.dto.CompanyUpdateRequest;
+import com.qpang.company.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,11 +25,13 @@ public class CompanyController {
     @PostMapping
     public ResponseEntity<APIResponse<CompanyResponse>> create(@Valid @RequestBody CompanyCreateRequest request) {
         Company company = companyService.create(
-                request.getName(),
-                request.getType(),
-                request.getHubId(),
-                request.getAddress(),
-                request.getManagerUserId()
+                CreateCompanyCommand.builder()
+                        .name(request.getName())
+                        .type(request.getType())
+                        .hubId(request.getHubId())
+                        .address(request.getAddress())
+                        .managerUserId(request.getManagerUserId())
+                        .build()
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(APIResponse.success(CompanyResponse.from(company)));

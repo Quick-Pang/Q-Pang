@@ -33,13 +33,32 @@ public class Hub extends BaseUserEntity {
     @Column(nullable = false)
     private BigDecimal longitude;
 
-    private UUID managerId; // 관리자 유저 ID
+    @Column(name = "manager_id")
+    private UUID managerId;
 
-    public void updateInfo(String name, String address, BigDecimal latitude, BigDecimal longitude, UUID managerId) {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "hub_type", nullable = false)
+    private HubType hubType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "center_hub_id")
+    private Hub centerHub;
+
+    public void updateInfo(
+            String name,
+            String address,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            UUID managerId,
+            HubType hubType,
+            Hub centerHub
+    ) {
         if (name != null) this.name = name;
         if (address != null) this.address = address;
         if (latitude != null) this.latitude = latitude;
         if (longitude != null) this.longitude = longitude;
         if (managerId != null) this.managerId = managerId;
+        if (hubType != null) this.hubType = hubType;
+        if (centerHub != null) this.centerHub = centerHub;
     }
 }

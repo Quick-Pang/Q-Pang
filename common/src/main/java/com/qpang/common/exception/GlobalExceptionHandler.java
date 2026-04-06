@@ -3,6 +3,7 @@ package com.qpang.common.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,6 +49,33 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+
+        log.error("HttpMessageNotReadableException: {}", e.getMessage());
+
+        // enum 관련 오류인지 UUID 관련 오류인지 구분
+        String message = e.getMessage();
+        String errorCode;
+        String errorMessage;
+
+        if (message != null && message.contains("UUID")) {
+            errorCode = "INVALID_INPUT_VALUE";
+            errorMessage = "올바른 UUID 형식이 아닙니다.";
+        } else {
+            errorCode = "INVALID_INPUT_VALUE";
+            errorMessage = "유효하지 않은 입력값입니다.";
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .success(false)
+                        .status(400)
+                        .errorCode(errorCode)
+                        .message(errorMessage)
+                        .build());
+    }
     // 나머지 에러
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
