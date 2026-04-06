@@ -49,7 +49,6 @@ public class DeliveryService {
                 )
         );
 
-
         Delivery delivery = Delivery.create(
                 command.getOrderId(),
                 command.getSourceHubId(),

@@ -20,6 +20,5 @@ public record CreateOrderRequest(
     @NotNull UUID createdBy,
     @NotNull @Size(min = 1) List<@Valid CreateOrderItemRequest> items
     ) {
-    
-    
+
 }

@@ -65,8 +65,6 @@ public class OrderService {
             req.createdBy(),
             req.items().stream().map(i -> new CreateOrderItemCommand(i.productId(), i.quantity())).toList()
         );
-
-
         return OrderResponse.from(createOrder(command));
     }
 
