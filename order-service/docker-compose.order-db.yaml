@@ -1,12 +1,9 @@
-# 로컬 전용: order_db 전용 PostgreSQL
-# 기동: docker compose -f docker-compose.order-db.yaml up -d
-# 연결 URL: jdbc:postgresql://localhost:5433/order_db (application.yaml의 url 포트를 5433으로 맞출 것)
 services:
   order-db:
     image: postgres:16-alpine
     container_name: qpang-order-db
     environment:
-      POSTGRES_DB: order_db
+      POSTGRES_DB: qpang_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:

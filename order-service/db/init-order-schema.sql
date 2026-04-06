@@ -1,7 +1,3 @@
--- 주문 도메인 초기 스키마 (Order / OrderItem 엔티티와 정합)
--- PostgreSQL — Flyway 미사용 시 DB에 수동 실행
--- 예: psql -U postgres -d order_db -f db/init-order-schema.sql
-
 CREATE TABLE p_order (
     id UUID NOT NULL PRIMARY KEY,
     supply_company_id UUID NOT NULL,
