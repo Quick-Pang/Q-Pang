@@ -2,6 +2,7 @@ package com.qpang.company.application;
 
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
+import com.qpang.company.client.HubClient;
 import com.qpang.company.domain.entity.Company;
 import com.qpang.company.domain.enums.CompanyStatus;
 import com.qpang.company.domain.enums.CompanyType;
@@ -25,8 +26,15 @@ import java.util.UUID;
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final HubClient hubClient;
 
     public Company create(CreateCompanyCommand command) {
+        //허브 존재 여부 확인
+        try {
+            hubClient.getHub(command.getHubId());
+        } catch (Exception e) {
+            throw new CustomException(CompanyErrorCode.HUB_NOT_FOUND);
+        }
         Company company = command.toEntity();
         return companyRepository.save(company);
     }
