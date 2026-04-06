@@ -20,6 +20,14 @@ spring:
       host: localhost
       port: 6379
 
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
 eureka:
   client:
     register-with-eureka: true
@@ -33,3 +41,8 @@ server:
 kakao:
   api:
     key: ${KAKAO_API_KEY}
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
