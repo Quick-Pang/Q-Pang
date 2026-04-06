@@ -4,30 +4,47 @@ spring:
   cloud:
     gateway:
       routes:
+        # user-service
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/auth/**,/users/**
+
+        # order-service
         - id: order-service
           uri: lb://order-service
           predicates:
             - Path=/orders/**
 
-        - id: hub-service
-          uri: lb://hub-service
+        # delivery (@RequestMapping("/deliveries") — spring.application.name 이 delivery 일 때)
+        - id: delivery
+          uri: lb://delivery
           predicates:
-            - Path=/hubs/**
+            - Path=/deliveries/**
 
-        - id: company-service
-          uri: lb://company-service
-          predicates:
-            - Path=/company/**
-
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/users/**
-
+        # product-service
         - id: product-service
           uri: lb://product-service
           predicates:
             - Path=/products/**
+
+        # company-service
+        - id: company-service
+          uri: lb://company-service
+          predicates:
+            - Path=/companies/**
+
+        # hub-service
+        - id: hub-service
+          uri: lb://hub-service
+          predicates:
+            - Path=/api/hubs/**,/api/hub-routes/**
+
+        # delivery-manager
+        - id: delivery-manager
+          uri: lb://delivery-manager
+          predicates:
+            - Path=/api/delivery-managers/**
 
 management:
   tracing:
