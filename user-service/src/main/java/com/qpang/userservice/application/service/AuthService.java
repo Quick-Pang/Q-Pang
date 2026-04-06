@@ -30,7 +30,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuthService {
 
     private static final String REFRESH_TOKEN_KEY_PREFIX = "auth:refresh:";
@@ -220,7 +219,7 @@ public class AuthService {
         }
 
         try {
-            CompanyResponseDTO company = companyClient.getCompanyById(companyId);
+            CompanyResponseDTO company = companyClient.getCompanyById(companyId).getData();
             if (company == null
                     || !"SUPPLIER".equals(company.type())
                     || !"OPEN".equals(company.status())) {

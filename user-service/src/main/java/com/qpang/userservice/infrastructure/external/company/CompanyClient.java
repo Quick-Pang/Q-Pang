@@ -1,5 +1,6 @@
 package com.qpang.userservice.infrastructure.external.company;
 
+import com.qpang.common.response.APIResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,5 +11,5 @@ import java.util.UUID;
 public interface CompanyClient {
 
     @GetMapping("/companies/{id}")
-    CompanyResponseDTO getCompanyById(@PathVariable(name = "id") UUID id);
+    APIResponse<CompanyResponseDTO> getCompanyById(@PathVariable(name = "id") UUID id);
 }
