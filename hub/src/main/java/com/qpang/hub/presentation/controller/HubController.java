@@ -51,14 +51,19 @@ public class HubController {
     }
 
     @DeleteMapping("/{hubId}")
-    public ResponseEntity<Void> deleteHub(@PathVariable(name = "hubId") UUID hubId) {
-        hubService.deleteHub(hubId, 1L);
+    public ResponseEntity<Void> deleteHub(
+            @PathVariable(name = "hubId") UUID hubId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        hubService.deleteHub(hubId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/init")
     public ResponseEntity<String> initHubData(
-            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String role,
             @RequestBody List<HubCreateRequest> requests
     ) {
         if (requests == null || requests.isEmpty()) {
