@@ -3,7 +3,6 @@ package com.qpang.orderservice.presentation;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,13 +10,13 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.qpang.orderservice.application.OrderService;
-import com.qpang.orderservice.domain.OrderStatus;
 import com.qpang.orderservice.presentation.dto.request.ChangeOrderStatusRequest;
 import com.qpang.orderservice.presentation.dto.request.CreateOrderRequest;
 import com.qpang.orderservice.presentation.dto.response.OrderResponse;
@@ -36,8 +35,10 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderResponse create(@RequestBody @Valid CreateOrderRequest request){
-        return orderService.createOrderFromRequest(request);
+    public OrderResponse create(
+            @RequestBody @Valid CreateOrderRequest request,
+            @RequestHeader("X-User-Id") UUID userId) {
+        return orderService.createOrderFromRequest(request, userId);
     }
 
     @GetMapping("/{orderId}")
@@ -68,7 +69,9 @@ public class OrderController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{orderId}")
-    public void delete(@PathVariable UUID orderId, @RequestParam UUID deletedBy){
+    public void delete(
+            @PathVariable UUID orderId,
+            @RequestHeader("X-User-Id") UUID deletedBy) {
         orderService.deleteOrder(orderId, deletedBy);
     }
 
