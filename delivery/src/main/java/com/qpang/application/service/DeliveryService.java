@@ -9,10 +9,7 @@ import com.qpang.domain.model.DeliveryRoute;
 import com.qpang.exception.DeliveryErrorCode;
 import com.qpang.infrastructure.client.CompanyServiceClient;
 import com.qpang.infrastructure.client.HubServiceClient;
-import com.qpang.infrastructure.client.dto.CompanyResponse;
-import com.qpang.infrastructure.client.dto.CreateDeliveryCommand;
-import com.qpang.infrastructure.client.dto.GetHubRouteRequest;
-import com.qpang.infrastructure.client.dto.GetDeliveryInfoResponse;
+import com.qpang.infrastructure.client.dto.*;
 import com.qpang.prsentation.dto.*;
 import com.qpang.repository.DeliveryRepository;
 import com.qpang.repository.DeliveryRouteRepository;
@@ -61,9 +58,7 @@ public class DeliveryService {
         UUID sourceHubId = supplyCompany.getHubId();
         UUID destHubId = requestCompany.getHubId();
 
-        GetDeliveryInfoResponse deliveryInfo = hubServiceClient.getHubRoute(
-                new GetHubRouteRequest(sourceHubId, destHubId)
-        );
+        List<HubRouteResponse> hubRoutes = hubServiceClient.getHubRoute(sourceHubId, destHubId);
 
         Delivery delivery = Delivery.create(
                 command.getOrderId(),
@@ -76,16 +71,20 @@ public class DeliveryService {
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        List<DeliveryRoute> routeList = deliveryInfo.getRoutes().stream()
-                .map(route -> DeliveryRoute.create(
-                        savedDelivery.getId(),
-                        route.getSequence(),
-                        route.getSourceHubId(),
-                        route.getDestHubId(),
-                        route.getEstimatedDistance(),
-                        route.getEstimatedTime(),
-                        route.getDeliveryManager()
-                ))
+        List<DeliveryRoute> routeList = java.util.stream.IntStream.range(0, hubRoutes.size())
+                .mapToObj(i -> {
+                    HubRouteResponse route = hubRoutes.get(i);
+
+                    return DeliveryRoute.create(
+                            savedDelivery.getId(),
+                            i + 1,
+                            route.getSourceHubId(),
+                            route.getDestinationHubId(),
+                            route.getDistance() != null ? route.getDistance().doubleValue() : 0.0,
+                            route.getDuration() != null ? route.getDuration() : 0,
+                            null
+                    );
+                })
                 .toList();
 
         deliveryRouteRepository.saveAll(routeList);

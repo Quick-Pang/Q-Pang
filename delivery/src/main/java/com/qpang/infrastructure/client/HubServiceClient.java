@@ -1,14 +1,19 @@
 package com.qpang.infrastructure.client;
 
-import com.qpang.infrastructure.client.dto.GetHubRouteRequest;
-import com.qpang.infrastructure.client.dto.GetDeliveryInfoResponse;
+import com.qpang.infrastructure.client.dto.HubRouteResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "hub-service")
+import java.util.List;
+import java.util.UUID;
+
+@FeignClient(name = "hub-service", url = "http://localhost:8085")
 public interface HubServiceClient {
 
-    @PostMapping("/hub-routes/search")
-    GetDeliveryInfoResponse getHubRoute(@RequestBody GetHubRouteRequest request);
+    @GetMapping("/api/hub-routes/path")
+    List<HubRouteResponse> getHubRoute(
+            @RequestParam("sourceHubId") UUID sourceHubId,
+            @RequestParam("destinationHubId") UUID destinationHubId
+    );
 }
