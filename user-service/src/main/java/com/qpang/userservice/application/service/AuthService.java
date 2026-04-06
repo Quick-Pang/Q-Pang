@@ -101,6 +101,10 @@ public class AuthService {
             throw new CustomException(CommonErrorCode.UNAUTHORIZED);
         }
 
+        if (!JwtUtil.REFRESH_TOKEN_TYPE.equals(jwtUtil.getUserInfoFromToken(refreshToken).get(JwtUtil.TOKEN_TYPE_KEY))) {
+            throw new CustomException(CommonErrorCode.UNAUTHORIZED);
+        }
+
         String username = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
         String storedRefreshToken = getRefreshToken(username)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.UNAUTHORIZED));
@@ -111,6 +115,10 @@ public class AuthService {
 
         User user = userRepository.findActiveByUsername(username)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+
+        if (user.getStatus() != UserStatus.APPROVED) {
+            throw new CustomException(UserErrorCode.NOT_APPROVED_USER);
+        }
 
         return issueTokenPair(user);
     }
@@ -158,7 +166,7 @@ public class AuthService {
     private AuthTokenPair issueTokenPair(User user) {
         String accessToken = jwtUtil.createToken(user.getUsername(), user.getRole());
         String refreshToken = jwtUtil.createRefreshToken(user.getUsername(), user.getRole());
-        redisService.setWithTTL(refreshTokenKey(user.getUsername()), refreshToken, REFRESH_TOKEN_TTL);
+        redisService.setWithTTL(refreshTokenKey(user.getUsername()), resolveToken(refreshToken), REFRESH_TOKEN_TTL);
 
         return AuthTokenPair.builder()
                 .userInfo(UserInfo.from(user))
