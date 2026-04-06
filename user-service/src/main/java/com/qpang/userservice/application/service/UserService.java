@@ -44,6 +44,17 @@ public class UserService {
     }
 
     /**
+     * [username -> userId 조회]
+     * 게이트웨이나 외부 모듈에서 username만 가진 경우, 활성 사용자 식별자를 반환합니다.
+     */
+    @Transactional(readOnly = true)
+    public UUID getUserIdByUsername(String username) {
+        return userRepository.findActiveByUsername(username)
+                .map(User::getId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
      * [내 정보 수정]
      * 엔티티의 updateInfo 메서드에 위임하여 상태를 변경합니다.
      */
