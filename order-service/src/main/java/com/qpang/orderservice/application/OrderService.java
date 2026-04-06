@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Transactional
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductStockClient productStockClient;
+    private static final List<Integer> ALLOWED_PAGE_SIZES = List.of(10, 30, 50);
 
     public Order createOrder(CreateOrderCommand command){
         for(var item : command.items()){
@@ -72,8 +75,17 @@ public class OrderService {
         return OrderResponse.from(getOrder(orderId));
     }
 
+    private Pageable pageable(int page, int size, String sortBy, String sortDirection){
+        int pageSize = ALLOWED_PAGE_SIZES.contains(size) ? size : 10;
+        String property = "updatedAt".equalsIgnoreCase(sortDirection) ? "updatedAt" : "createdAt";
+        Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        return PageRequest.of(page, pageSize, Sort.by(direction, property));
+    }
+
     @Transactional(readOnly = true)
-    public Page<OrderSummaryResponse> getOrderSummaryList(Pageable pageable){
+    public Page<OrderSummaryResponse> getOrderSummaryList(int page, int size, String sortBy, String sortDirection){
+        Pageable pageable = pageable(page, size, sortBy, sortDirection);
         return getOrderList(pageable).map(o->new OrderSummaryResponse(
             o.getId(), 
             o.getStatus(), 

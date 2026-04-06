@@ -46,8 +46,12 @@ public class OrderController {
     }
 
     @GetMapping
-    public Page<OrderSummaryResponse> list(Pageable pageable){
-        return orderService.getOrderSummaryList(pageable);
+    public Page<OrderSummaryResponse> list(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "createdAt") String sortBy,
+        @RequestParam(defaultValue = "DESC") String sortDirection){
+        return orderService.getOrderSummaryList(page, size, sortBy, sortDirection);
     }
 
     @PatchMapping("/{orderId}/status")
