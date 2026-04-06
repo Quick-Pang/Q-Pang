@@ -14,7 +14,7 @@ public interface DeliveryClient {
     CreateDeliveryResponse create(@RequestBody CreateDeliveryRequest request);
 
 
-    record CreateDeliveryRequest(UUID orderId, UUID sourceHubId) {}
+    record CreateDeliveryRequest(UUID orderId, UUID supplyCompanyId, UUID requestCompanyId) {}
 
 
     record CreateDeliveryResponse(UUID deliveryId, UUID orderId, String deliveryStatus) {}

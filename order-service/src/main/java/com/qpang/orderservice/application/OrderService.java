@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductStockClient productStockClient;
-    private final HubResolver hubResolver;
     private final DeliveryClient deliveryClient;
     private static final List<Integer> ALLOWED_PAGE_SIZES = List.of(10, 30, 50);
 
@@ -58,7 +57,6 @@ public class OrderService {
     public OrderResponse createOrderFromRequest(CreateOrderRequest req){
         List<CreateOrderItemCommand> lines =
                 req.items().stream().map(i -> new CreateOrderItemCommand(i.productId(), i.quantity())).toList();
-        UUID departureHubId = hubResolver.resolveFromItems(lines);
 
         CreateOrderCommand command = new CreateOrderCommand(
             req.supplyCompanyId(),
@@ -73,7 +71,10 @@ public class OrderService {
 
         Order order = createOrder(command);
         var deliveryRes = deliveryClient.create(
-                new DeliveryClient.CreateDeliveryRequest(order.getId(), departureHubId));
+                new DeliveryClient.CreateDeliveryRequest(
+                        order.getId(),
+                        order.getSupplyCompanyId(),
+                        order.getRequestCompanyId()));
         order.assignDelivery(deliveryRes.deliveryId());
         orderRepository.save(order);
         return OrderResponse.from(order);
