@@ -9,5 +9,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class GetHubRouteRequest {
     private UUID sourceHubId;
-    private String deliveryAddress;
+    private UUID destHubId;
 }

@@ -40,12 +40,15 @@ public class DeliveryService {
     public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command) {
         validateCreateDeliveryCommand(command);
 
+
+
         GetDeliveryInfoResponse deliveryInfo = hubServiceClient.getHubRoute(
                 new GetHubRouteRequest(
                         command.getSourceHubId(),
-                        command.getDeliveryAddress()
+                        command.getDestHubId()
                 )
         );
+
 
         Delivery delivery = Delivery.create(
                 command.getOrderId(),

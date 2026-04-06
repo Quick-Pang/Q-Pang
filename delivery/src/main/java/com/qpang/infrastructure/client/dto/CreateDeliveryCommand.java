@@ -14,9 +14,6 @@ public class CreateDeliveryCommand {
     @NotNull
     private UUID orderId;
 
-    @NotNull
-    private UUID sourceHubId;
-
     @NotBlank
     private String deliveryAddress;
 
@@ -25,4 +22,10 @@ public class CreateDeliveryCommand {
 
     @NotBlank
     private String receiverSlackId;
+
+    @NotBlank
+    private UUID sourceHubId;
+
+    @NotBlank
+    private UUID destHubId;
 }
