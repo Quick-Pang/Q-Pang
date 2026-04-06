@@ -1,6 +1,5 @@
 package com.qpang.infrastructure.client.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,18 +13,9 @@ public class CreateDeliveryCommand {
     @NotNull
     private UUID orderId;
 
-    @NotBlank
-    private String deliveryAddress;
+    @NotNull
+    private UUID supplyCompanyId;
 
-    @NotBlank
-    private String receiverName;
-
-    @NotBlank
-    private String receiverSlackId;
-
-    @NotBlank
-    private UUID sourceHubId;
-
-    @NotBlank
-    private UUID destHubId;
+    @NotNull
+    private UUID requestCompanyId;
 }

@@ -7,7 +7,9 @@ import com.qpang.domain.enums.DeliveryStatus;
 import com.qpang.domain.model.Delivery;
 import com.qpang.domain.model.DeliveryRoute;
 import com.qpang.exception.DeliveryErrorCode;
+import com.qpang.infrastructure.client.CompanyServiceClient;
 import com.qpang.infrastructure.client.HubServiceClient;
+import com.qpang.infrastructure.client.dto.CompanyResponse;
 import com.qpang.infrastructure.client.dto.CreateDeliveryCommand;
 import com.qpang.infrastructure.client.dto.GetHubRouteRequest;
 import com.qpang.infrastructure.client.dto.GetDeliveryInfoResponse;
@@ -33,29 +35,43 @@ public class DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final DeliveryRouteRepository deliveryRouteRepository;
     private final HubServiceClient hubServiceClient;
+    private final CompanyServiceClient companyServiceClient;
     private final SlackMessageService slackMessageService;
 
-    // 배송 생성 todo: 출발 허브 담당 도메인 정하기, 허브 도메인에게 이동 경로 받아오기 연동할기
     @Transactional
     public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command) {
         validateCreateDeliveryCommand(command);
 
+        CompanyResponse supplyCompany = companyServiceClient
+                .getCompany(command.getSupplyCompanyId())
+                .getData();
 
+        CompanyResponse requestCompany = companyServiceClient
+                .getCompany(command.getRequestCompanyId())
+                .getData();
+
+        if (supplyCompany == null || supplyCompany.getHubId() == null) {
+            throw new CustomException(DeliveryErrorCode.DELIVERY_CREATE_INVALID_INPUT);
+        }
+
+        if (requestCompany == null || requestCompany.getHubId() == null) {
+            throw new CustomException(DeliveryErrorCode.DELIVERY_CREATE_INVALID_INPUT);
+        }
+
+        UUID sourceHubId = supplyCompany.getHubId();
+        UUID destHubId = requestCompany.getHubId();
 
         GetDeliveryInfoResponse deliveryInfo = hubServiceClient.getHubRoute(
-                new GetHubRouteRequest(
-                        command.getSourceHubId(),
-                        command.getDestHubId()
-                )
+                new GetHubRouteRequest(sourceHubId, destHubId)
         );
 
         Delivery delivery = Delivery.create(
                 command.getOrderId(),
-                command.getSourceHubId(),
-                deliveryInfo.getDestHubId(),
-                command.getDeliveryAddress(),
-                command.getReceiverName(),
-                command.getReceiverSlackId()
+                sourceHubId,
+                destHubId,
+                requestCompany.getAddress(),
+                requestCompany.getName(),
+                null //todo: 수령인 슬랙 ID
         );
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
@@ -310,9 +326,9 @@ public class DeliveryService {
     private void validateCreateDeliveryCommand(CreateDeliveryCommand command) {
         if (command == null ||
                 command.getOrderId() == null ||
-                command.getSourceHubId() == null ||
-                command.getDeliveryAddress() == null || command.getDeliveryAddress().trim().isEmpty() ||
-                command.getReceiverName() == null || command.getReceiverName().trim().isEmpty()) {
+                command.getSupplyCompanyId() == null ||
+                command.getRequestCompanyId() == null
+        ) {
             throw new CustomException(DeliveryErrorCode.INVALID_DELIVERY_INPUT);
         }
     }

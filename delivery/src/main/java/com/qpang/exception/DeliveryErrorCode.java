@@ -19,6 +19,7 @@ public enum DeliveryErrorCode implements ErrorCode {
     INVALID_DELIVERY_INPUT(HttpStatus.BAD_REQUEST, "배송 요청 값이 올바르지 않습니다."),
     INVALID_DELIVERY_ROUTE_INPUT(HttpStatus.BAD_REQUEST, "배송 경로 요청 값이 올바르지 않습니다."),
     INVALID_DELIVERY_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 배송 상태입니다."),
+    DELIVERY_CREATE_INVALID_INPUT(HttpStatus.BAD_REQUEST, "배송 생성에 필요한 값이 올바르지 않습니다."),
     INVALID_DELIVERY_ROUTE_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 배송 경로 상태입니다.");
 
     private final HttpStatus status;
