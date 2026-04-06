@@ -6,13 +6,16 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+
 @FeignClient(name = "delivery", path = "/deliveries")
 public interface DeliveryClient {
 
     @PostMapping
     CreateDeliveryResponse create(@RequestBody CreateDeliveryRequest request);
 
-    record CreateDeliveryRequest(UUID orderId, UUID departureHubId) {}
 
-    record CreateDeliveryResponse(UUID deliveryId) {}
+    record CreateDeliveryRequest(UUID orderId, UUID sourceHubId) {}
+
+
+    record CreateDeliveryResponse(UUID deliveryId, UUID orderId, String deliveryStatus) {}
 }

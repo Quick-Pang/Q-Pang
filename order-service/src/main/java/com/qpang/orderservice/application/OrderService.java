@@ -86,7 +86,7 @@ public class OrderService {
 
     private Pageable pageable(int page, int size, String sortBy, String sortDirection){
         int pageSize = ALLOWED_PAGE_SIZES.contains(size) ? size : 10;
-        String property = "updatedAt".equalsIgnoreCase(sortDirection) ? "updatedAt" : "createdAt";
+        String property = "updatedAt".equalsIgnoreCase(sortBy) ? "updatedAt" : "createdAt";
         Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         return PageRequest.of(page, pageSize, Sort.by(direction, property));
