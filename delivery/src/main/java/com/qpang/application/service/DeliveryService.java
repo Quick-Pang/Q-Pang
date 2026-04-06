@@ -98,6 +98,8 @@ public class DeliveryService {
                 delivery.getDeliveryAddress()
         );
 
+        //todo: 허브 담당자 조회
+
         CreateSlackMessageRequest request = new CreateSlackMessageRequest();
 //        request.setReceiverSlackId(); //todo: 허브 담당자에게 슬랙으로 바꾸기
         request.setMessage(message);
