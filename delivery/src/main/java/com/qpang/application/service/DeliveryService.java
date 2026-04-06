@@ -89,12 +89,12 @@ public class DeliveryService {
                 .toList();
 
         deliveryRouteRepository.saveAll(routeList);
-
-        try {
-            sendSlackNotification(savedDelivery);
-        } catch (Exception e) {
-            System.out.println("슬랙 알림 전송 실패: " + e.getMessage());
-        }
+//todo: 허브 담당자의 slackId가 필요함
+//        try {
+//            sendSlackNotification(savedDelivery);
+//        } catch (Exception e) {
+//            System.out.println("슬랙 알림 전송 실패: " + e.getMessage());
+//        }
 
         return CreateDeliveryResponse.from(savedDelivery);
     }
@@ -119,7 +119,7 @@ public class DeliveryService {
         //todo: 허브 담당자 조회
 
         CreateSlackMessageRequest request = new CreateSlackMessageRequest();
-//        request.setReceiverSlackId(); //todo: 허브 담당자에게 슬랙으로 바꾸기
+//      request.setReceiverSlackId(); //todo: 허브 담당자에게 슬랙으로 바꾸기
         request.setMessage(message);
         request.setSenderUserId(null);
         request.setRelatedType("DELIVERY");
