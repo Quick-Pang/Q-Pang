@@ -17,79 +17,104 @@ public class DeliveryController {
 
     private final DeliveryService deliveryService;
 
-    //배송 생성todo: 권한 검증
     @PostMapping
-    public CreateDeliveryResponse createDelivery(@Valid @RequestBody CreateDeliveryCommand request) {
-        return deliveryService.createDelivery(request);
+    public CreateDeliveryResponse createDelivery(
+            @Valid @RequestBody CreateDeliveryCommand request,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        return deliveryService.createDelivery(request, userId, userRole);
     }
 
-    // 배송 단건 조회todo: 권한 검증
     @GetMapping("/{deliveryId}")
-    public GetDeliveryResponse getDelivery(@PathVariable UUID deliveryId) {
-        return deliveryService.getDelivery(deliveryId);
+    public GetDeliveryResponse getDelivery(
+            @PathVariable UUID deliveryId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        return deliveryService.getDelivery(deliveryId, userId, userRole);
     }
 
-    //배송 목록 조회 todo: 권한 검증
     @GetMapping
-    public List<GetDeliveryListResponse> getDeliveries() {
-        return deliveryService.getDeliveries();
+    public List<GetDeliveryListResponse> getDeliveries(
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        return deliveryService.getDeliveries(userId, userRole);
     }
 
-    //배송 경로 조회todo: 권한 검증
     @GetMapping("/{deliveryId}/routes")
-    public List<GetDeliveryRouteResponse> getDeliveryRoutes(@PathVariable UUID deliveryId) {
-        return deliveryService.getDeliveryRoutes(deliveryId);
+    public List<GetDeliveryRouteResponse> getDeliveryRoutes(
+            @PathVariable UUID deliveryId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        return deliveryService.getDeliveryRoutes(deliveryId, userId, userRole);
     }
 
-    //출발 허브 기준 배송 목록 조회 todo: 권한 검증
     @GetMapping("/source-hubs/{sourceHubId}")
-    public List<GetDeliveryListResponse> getDeliveriesBySourceHub(@PathVariable UUID sourceHubId) {
-        return deliveryService.getDeliveriesBySourceHub(sourceHubId);
+    public List<GetDeliveryListResponse> getDeliveriesBySourceHub(
+            @PathVariable UUID sourceHubId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        return deliveryService.getDeliveriesBySourceHub(sourceHubId, userId, userRole);
     }
 
-    //도착 허브 기준 배송 목록 조회 todo: 권한 검증
     @GetMapping("/dest-hubs/{destHubId}")
-    public List<GetDeliveryListResponse> getDeliveriesByDestHub(@PathVariable UUID destHubId) {
-        return deliveryService.getDeliveriesByDestHub(destHubId);
+    public List<GetDeliveryListResponse> getDeliveriesByDestHub(
+            @PathVariable UUID destHubId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        return deliveryService.getDeliveriesByDestHub(destHubId, userId, userRole);
     }
 
-    //현재 진행 진행 경로 확인
     @GetMapping("/{deliveryId}/current-route")
-    public GetCurrentDeliveryRouteResponse getCurrentDeliveryRoute(@PathVariable UUID deliveryId) {
-        return deliveryService.getCurrentDeliveryRoute(deliveryId);
+    public GetCurrentDeliveryRouteResponse getCurrentDeliveryRoute(
+            @PathVariable UUID deliveryId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        return deliveryService.getCurrentDeliveryRoute(deliveryId, userId, userRole);
     }
 
-    //배송 정보 수정todo: 권한 검증
     @PatchMapping("/{deliveryId}")
     public void updateDelivery(
             @PathVariable UUID deliveryId,
-            @Valid @RequestBody UpdateDeliveryRequest request
+            @Valid @RequestBody UpdateDeliveryRequest request,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
     ) {
-        deliveryService.updateDelivery(deliveryId, request);
+        deliveryService.updateDelivery(deliveryId, request, userId, userRole);
     }
 
-    //배송 상태 수정 todo: 권한 검증
     @PatchMapping("/{deliveryId}/status")
     public void updateDeliveryStatus(
             @PathVariable UUID deliveryId,
-            @Valid @RequestBody UpdateDeliveryStatusRequest request
+            @Valid @RequestBody UpdateDeliveryStatusRequest request,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
     ) {
-        deliveryService.updateDeliveryStatus(deliveryId, request.getDeliveryStatus());
+        deliveryService.updateDeliveryStatus(deliveryId, request.getDeliveryStatus(), userId, userRole);
     }
 
-    //배송 경로 상태 수정todo: 권한 검증
     @PatchMapping("/routes/{deliveryRouteId}/status")
     public void updateDeliveryRouteStatus(
             @PathVariable UUID deliveryRouteId,
-            @Valid @RequestBody UpdateDeliveryRouteStatusRequest request
+            @Valid @RequestBody UpdateDeliveryRouteStatusRequest request,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
     ) {
-        deliveryService.updateDeliveryRouteStatus(deliveryRouteId, request);
+        deliveryService.updateDeliveryRouteStatus(deliveryRouteId, request, userId, userRole);
     }
 
-    //배송 삭제 todo: 권한 검증, 삭제된 배송 조회 안되도록 설정
     @DeleteMapping("/{deliveryId}")
-    public void deleteDelivery(@PathVariable UUID deliveryId) {
-        UUID deletedBy = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        deliveryService.deleteDelivery(deliveryId, deletedBy);
+    public void deleteDelivery(
+            @PathVariable UUID deliveryId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole
+    ) {
+        deliveryService.deleteDelivery(deliveryId, userId, userRole);
     }
 }

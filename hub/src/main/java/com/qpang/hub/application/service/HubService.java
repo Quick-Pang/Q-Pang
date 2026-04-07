@@ -115,7 +115,10 @@ public class HubService {
         return HubResult.from(hub);
     }
 
-    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "hubs", key = "#hubId"),
+            @CacheEvict(value = {"hubList", "hubRouteList"}, allEntries = true)
+    })
     public void deleteHub(UUID hubId, UUID userId) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
