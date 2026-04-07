@@ -79,7 +79,7 @@ public class CompanyController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id,
                                        @RequestParam Long userId) {
-        //companyService.delete(id, userId);
+        companyService.delete(id, userId);
         return ResponseEntity.noContent().build();
     }
 }

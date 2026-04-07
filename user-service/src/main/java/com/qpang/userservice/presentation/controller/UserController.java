@@ -67,7 +67,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(
             @PathVariable UUID id,
-            @RequestHeader("X-Deleted-By") Long deletedBy) {
+            @RequestHeader("X-Deleted-By") UUID deletedBy) {
         userService.deleteUser(id, deletedBy);
         return ResponseEntity.noContent().build();
     }
