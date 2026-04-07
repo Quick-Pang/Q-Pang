@@ -52,7 +52,7 @@ public class HubController {
 
     @DeleteMapping("/{hubId}")
     public ResponseEntity<Void> deleteHub(@PathVariable(name = "hubId") UUID hubId) {
-        hubService.deleteHub(hubId, 1L);
+        hubService.deleteHub(hubId,  UUID.fromString("11111111-1111-1111-1111-111111111111"));
         return ResponseEntity.noContent().build();
     }
 

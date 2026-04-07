@@ -119,7 +119,7 @@ public class HubService {
             @CacheEvict(value = "hubs", key = "#hubId"),
             @CacheEvict(value = {"hubList", "hubRouteList"}, allEntries = true)
     })
-    public void deleteHub(UUID hubId, Long userId) {
+    public void deleteHub(UUID hubId, UUID userId) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
 
@@ -134,7 +134,7 @@ public class HubService {
         }
 
         hubRouteRepository.deleteByHub(hub);
-        //hub.delete(userId);
+        hub.delete(userId);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
