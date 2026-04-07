@@ -53,8 +53,8 @@ public class DeliveryManagerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        deliveryManagerService.delete(id, 1L);
+    public ResponseEntity<Void> delete(@PathVariable UUID id,@RequestParam UUID userId) {
+        deliveryManagerService.delete(id, userId);
         return ResponseEntity.noContent().build();
     }
 }

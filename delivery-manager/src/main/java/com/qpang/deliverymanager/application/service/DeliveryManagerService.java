@@ -77,7 +77,7 @@ public class DeliveryManagerService {
     }
 
     @Transactional
-    public void delete(UUID id, Long userId) {
+    public void delete(UUID id, UUID userId) {
         DeliveryManager deliveryManager = deliveryManagerRepository.findById(id)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
 
