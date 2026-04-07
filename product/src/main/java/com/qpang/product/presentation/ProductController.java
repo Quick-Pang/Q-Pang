@@ -91,7 +91,7 @@ public class ProductController {
     // 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id,
-                                       @RequestParam Long userId) {
+                                       @RequestParam UUID userId) {
         productService.delete(id, userId);
         return ResponseEntity.noContent().build();
     }

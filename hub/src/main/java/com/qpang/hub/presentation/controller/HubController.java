@@ -51,8 +51,9 @@ public class HubController {
     }
 
     @DeleteMapping("/{hubId}")
-    public ResponseEntity<Void> deleteHub(@PathVariable(name = "hubId") UUID hubId) {
-        hubService.deleteHub(hubId, 1L);
+    public ResponseEntity<Void> deleteHub(@PathVariable(name = "hubId") UUID hubId,
+                                          @RequestParam UUID userId) {
+        hubService.deleteHub(hubId, userId);
         return ResponseEntity.noContent().build();
     }
 
