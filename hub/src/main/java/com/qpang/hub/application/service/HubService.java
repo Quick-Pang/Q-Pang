@@ -134,7 +134,7 @@ public class HubService {
         }
 
         hubRouteRepository.deleteByHub(hub);
-        //todo:hub.delete(userId);
+        hub.delete(userId);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

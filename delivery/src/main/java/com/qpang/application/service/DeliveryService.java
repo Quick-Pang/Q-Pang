@@ -100,7 +100,7 @@ public class DeliveryService {
 
     private void sendSlackNotification(Delivery delivery) {
         String message = """
-        🚚 배송 생성 알림
+        배송 생성 알림
 
         주문 ID: %s
         출발 허브: %s
