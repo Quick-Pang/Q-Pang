@@ -37,7 +37,7 @@ public class Order extends BaseEntity{
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(name = "delivery_id", nullable = false)
+    @Column(name = "delivery_id")
     private UUID deliveryId;
 
     //BIGINT
@@ -90,6 +90,16 @@ public class Order extends BaseEntity{
                     .requestMemo(requestMemo)
                     .createdBy(createdBy)
                     .build();
+    }
+
+    public void assignDelivery(UUID newDeliveryId) {
+        if (newDeliveryId == null) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
+        if (this.deliveryId != null) {
+            throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.deliveryId = newDeliveryId;
     }
 
     public void addItem(UUID productId, int quantity, UUID itemCreatedBy) {
