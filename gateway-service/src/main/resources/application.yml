@@ -46,6 +46,11 @@ spring:
           predicates:
             - Path=/api/delivery-managers/**
 
+        - id: delivery-service
+          uri: lb://delivery-service
+          predicates:
+            - Path=/deliveries/**,/messages/**,/ai/**
+
 management:
   tracing:
     sampling:
