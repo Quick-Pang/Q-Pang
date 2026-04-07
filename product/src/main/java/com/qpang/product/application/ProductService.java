@@ -101,7 +101,7 @@ public class ProductService {
         product.decreaseStock(quantity);
     }
 
-    public void delete(UUID id, Long userId) {
+    public void delete(UUID id, UUID userId) {
         Product product = findById(id);
         if (product.getDeletedAt() != null) {
             throw new CustomException(ProductErrorCode.PRODUCT_ALREADY_DELETED);
