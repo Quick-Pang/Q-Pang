@@ -54,18 +54,18 @@ public class OrderService {
         }
     }
 
-    public OrderResponse createOrderFromRequest(CreateOrderRequest req){
+    public OrderResponse createOrderFromRequest(CreateOrderRequest req, UUID userId) {
         List<CreateOrderItemCommand> lines =
                 req.items().stream().map(i -> new CreateOrderItemCommand(i.productId(), i.quantity())).toList();
 
         CreateOrderCommand command = new CreateOrderCommand(
             req.supplyCompanyId(),
             req.requestCompanyId(),
-            req.userId(),
+            userId,
             req.price(),
             req.desiredArrival(),
             req.requestMemo(),
-            req.createdBy(),
+            userId,
             lines
         );
 
