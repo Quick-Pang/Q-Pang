@@ -75,4 +75,4 @@ logging:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_BASE64}
+    key: bPosfkVbiUZD7LJ+lap3bxIcC/NVxHTXyRmWQ47hih1ND9jevbxbkqX4krCS45+6FCe2CEjgQwHFk2iGx5Q/9A==

@@ -46,7 +46,7 @@ springdoc:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY}
+    key: bPosfkVbiUZD7LJ+lap3bxIcC/NVxHTXyRmWQ47hih1ND9jevbxbkqX4krCS45+6FCe2CEjgQwHFk2iGx5Q/9A==
 
 logging:
   pattern:

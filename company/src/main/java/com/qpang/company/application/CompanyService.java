@@ -83,7 +83,7 @@ public class CompanyService {
         company.changeStatus(status);
     }
 
-    public void delete(UUID id, Long userId) {
+    public void delete(UUID id, UUID userId) {
         Company company = findById(id);
         if (company.getDeletedAt() != null) {
             throw new CustomException(CompanyErrorCode.COMPANY_ALREADY_DELETED);

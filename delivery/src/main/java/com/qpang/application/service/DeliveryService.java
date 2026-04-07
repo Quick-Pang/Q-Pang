@@ -38,18 +38,22 @@ public class DeliveryService {
     private final SlackMessageService slackMessageService;
 
     @Transactional
-    public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command, UUID userId, String userRole) {
+    public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command, UUID userId, String role) {
         validateId(userId);
-        validateRole(userRole);
-        validateCreateDeliveryPermission(userRole);
+        validateRole(role);
+        validateCreateDeliveryPermission(role);
         validateCreateDeliveryCommand(command);
 
         CompanyResponse supplyCompany = companyServiceClient
-                .getCompany(command.getSupplyCompanyId())
+                .getCompany(command.getSupplyCompanyId(),
+                        userId,
+                        role)
                 .getData();
 
         CompanyResponse requestCompany = companyServiceClient
-                .getCompany(command.getRequestCompanyId())
+                .getCompany(command.getRequestCompanyId(),
+                        userId,
+                        role)
                 .getData();
 
         if (supplyCompany == null || supplyCompany.getHubId() == null) {

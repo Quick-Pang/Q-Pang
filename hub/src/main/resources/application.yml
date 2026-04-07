@@ -46,7 +46,7 @@ server:
 
 kakao:
   api:
-    key: ${KAKAO_API_KEY}
+    key: test
 
 logging:
   pattern:
