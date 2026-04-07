@@ -4,14 +4,13 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
-public class AuditorAwareImpl implements AuditorAware<UUID> {
+public class AuditorAwareImpl implements AuditorAware<Long> {
 
     @Override
-    public Optional<UUID> getCurrentAuditor() {
-        // 테스트용 고정 UUID
-        return Optional.of(UUID.fromString("11111111-1111-1111-1111-111111111111"));
+    public Optional<Long> getCurrentAuditor() {
+        //테스트용
+        return Optional.of(1L);
     }
 }
