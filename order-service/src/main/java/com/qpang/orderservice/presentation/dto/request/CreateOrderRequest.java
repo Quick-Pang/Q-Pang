@@ -17,6 +17,5 @@ public record CreateOrderRequest(
     String requestMemo,
     @NotNull @Size(min = 1) List<@Valid CreateOrderItemRequest> items
     ) {
-    
-    
+
 }

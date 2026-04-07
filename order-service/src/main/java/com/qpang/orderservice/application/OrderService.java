@@ -36,16 +36,16 @@ public class OrderService {
     public Order createOrder(CreateOrderCommand command){
         for(var item : command.items()){
             productStockClient.decreaseStock(
-                item.productId(),
-                new ProductStockFeignRequest(item.quantity()));
+                    item.productId(),
+                    new ProductStockFeignRequest(item.quantity()));
         }try{
             return orderRepository.save(command.toOrder());
         }catch(RuntimeException e){
             for(var item : command.items()){
                 try{
                     productStockClient.increaseStock(
-                        item.productId(),
-                        new ProductStockFeignRequest(item.quantity()));
+                            item.productId(),
+                            new ProductStockFeignRequest(item.quantity()));
                 } catch(Exception i){}
             }
             throw e;
@@ -57,14 +57,14 @@ public class OrderService {
                 req.items().stream().map(i -> new CreateOrderItemCommand(i.productId(), i.quantity())).toList();
 
         CreateOrderCommand command = new CreateOrderCommand(
-            req.supplyCompanyId(),
-            req.requestCompanyId(),
-            userId,
-            req.price(),
-            req.desiredArrival(),
-            req.requestMemo(),
-            userId,
-            lines
+                req.supplyCompanyId(),
+                req.requestCompanyId(),
+                userId,
+                req.price(),
+                req.desiredArrival(),
+                req.requestMemo(),
+                userId,
+                lines
         );
 
         Order order = createOrder(command);
@@ -88,10 +88,10 @@ public class OrderService {
     public Page<OrderSummaryResponse> getOrderSummaryList(int page, int size, String sortBy, String sortDirection){
         Pageable pageable = pageable(page, size, sortBy, sortDirection);
         return getOrderList(pageable).map(o->new OrderSummaryResponse(
-            o.getId(), 
-            o.getStatus(), 
-            o.getPrice(), 
-            o.getCreatedAt()));
+                o.getId(),
+                o.getStatus(),
+                o.getPrice(),
+                o.getCreatedAt()));
     }
 
     @Transactional(readOnly = true)
@@ -105,7 +105,7 @@ public class OrderService {
     public Page<Order> getOrderList(Pageable pageable){
         return orderRepository.findAllByDeletedAtIsNull(pageable);
     }
-    
+
     public void changeOrderStatus(UUID orderId, OrderStatus newStatus){
         Order order = getActiveOrder(orderId);
         order.changeStatus(newStatus);
@@ -118,8 +118,8 @@ public class OrderService {
         }
         for(OrderItem line : order.getItems()){
             productStockClient.increaseStock(
-                line.getProductId(),
-                new ProductStockFeignRequest(line.getQuantity()));
+                    line.getProductId(),
+                    new ProductStockFeignRequest(line.getQuantity()));
         }
         order.changeStatus(OrderStatus.CANCELLED);
     }
@@ -135,7 +135,7 @@ public class OrderService {
                 throw new CustomException(OrderErrorCode.ORDER_ALREADY_DELETED);
             }
             return order;
-        }).orElseThrow(() 
-                   -> new CustomException(OrderErrorCode.ORDER_NOT_FOUND));
+        }).orElseThrow(()
+                -> new CustomException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 }
