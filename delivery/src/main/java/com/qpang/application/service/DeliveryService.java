@@ -1,5 +1,6 @@
 package com.qpang.application.service;
 
+import com.qpang.common.entity.UserRole;
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
 import com.qpang.domain.enums.DeliveryRouteStatus;
@@ -9,7 +10,9 @@ import com.qpang.domain.model.DeliveryRoute;
 import com.qpang.exception.DeliveryErrorCode;
 import com.qpang.infrastructure.client.CompanyServiceClient;
 import com.qpang.infrastructure.client.HubServiceClient;
-import com.qpang.infrastructure.client.dto.*;
+import com.qpang.infrastructure.client.dto.CompanyResponse;
+import com.qpang.infrastructure.client.dto.CreateDeliveryCommand;
+import com.qpang.infrastructure.client.dto.HubRouteResponse;
 import com.qpang.prsentation.dto.*;
 import com.qpang.repository.DeliveryRepository;
 import com.qpang.repository.DeliveryRouteRepository;
@@ -27,7 +30,6 @@ public class DeliveryService {
     private static final int FIRST_ROUTE_SEQUENCE = 1;
     private static final double DEFAULT_ESTIMATED_DISTANCE = 0.0;
     private static final int DEFAULT_ESTIMATED_TIME = 0;
-    //경로 번호, 거리, 시간 후에 주문 생성 시 orderService에서 값을 받아서 들어감
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryRouteRepository deliveryRouteRepository;
@@ -36,7 +38,10 @@ public class DeliveryService {
     private final SlackMessageService slackMessageService;
 
     @Transactional
-    public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command) {
+    public CreateDeliveryResponse createDelivery(CreateDeliveryCommand command, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
+        validateCreateDeliveryPermission(userRole);
         validateCreateDeliveryCommand(command);
 
         CompanyResponse supplyCompany = companyServiceClient
@@ -66,7 +71,7 @@ public class DeliveryService {
                 destHubId,
                 requestCompany.getAddress(),
                 requestCompany.getName(),
-                null //todo: 수령인 슬랙 ID
+                null
         );
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
@@ -80,20 +85,14 @@ public class DeliveryService {
                             i + 1,
                             route.getSourceHubId(),
                             route.getDestinationHubId(),
-                            route.getDistance() != null ? route.getDistance().doubleValue() : 0.0,
-                            route.getDuration() != null ? route.getDuration() : 0,
+                            route.getDistance() != null ? route.getDistance().doubleValue() : DEFAULT_ESTIMATED_DISTANCE,
+                            route.getDuration() != null ? route.getDuration() : DEFAULT_ESTIMATED_TIME,
                             null
                     );
                 })
                 .toList();
 
         deliveryRouteRepository.saveAll(routeList);
-//todo: 허브 담당자의 slackId가 필요함
-//        try {
-//            sendSlackNotification(savedDelivery);
-//        } catch (Exception e) {
-//            System.out.println("슬랙 알림 전송 실패: " + e.getMessage());
-//        }
 
         return CreateDeliveryResponse.from(savedDelivery);
     }
@@ -115,10 +114,7 @@ public class DeliveryService {
                 delivery.getDeliveryAddress()
         );
 
-        //todo: 허브 담당자 조회
-
         CreateSlackMessageRequest request = new CreateSlackMessageRequest();
-//      request.setReceiverSlackId(); //todo: 허브 담당자에게 슬랙으로 바꾸기
         request.setMessage(message);
         request.setSenderUserId(null);
         request.setRelatedType("DELIVERY");
@@ -127,30 +123,53 @@ public class DeliveryService {
         slackMessageService.createAndSendSlackMessage(request);
     }
 
-    // 배송 단건 조회
     @Transactional(readOnly = true)
-    public GetDeliveryResponse getDelivery(UUID deliveryId) {
+    public GetDeliveryResponse getDelivery(UUID deliveryId, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(deliveryId);
 
         Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
 
+        validateReadDeliveryPermission(delivery, userId, userRole);
+
         return GetDeliveryResponse.from(delivery);
     }
 
-    // 배송 전체 목록 조회
     @Transactional(readOnly = true)
-    public List<GetDeliveryListResponse> getDeliveries() {
-        return deliveryRepository.findAllByDeletedAtIsNull()
-                .stream()
-                .map(GetDeliveryListResponse::from)
-                .toList();
+    public List<GetDeliveryListResponse> getDeliveries(UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
+
+        if (isMaster(userRole) || isHubManager(userRole) || isSupplierManager(userRole)) {
+            return deliveryRepository.findAllByDeletedAtIsNull()
+                    .stream()
+                    .map(GetDeliveryListResponse::from)
+                    .toList();
+        }
+
+        if (isDeliveryManager(userRole)) {
+            return deliveryRouteRepository.findAllByDeliveryManagerAndDeletedAtIsNull(userId)
+                    .stream()
+                    .map(route -> deliveryRepository.findByIdAndDeletedAtIsNull(route.getDeliveryId())
+                            .orElse(null))
+                    .filter(delivery -> delivery != null)
+                    .distinct()
+                    .map(GetDeliveryListResponse::from)
+                    .toList();
+        }
+
+        throw new CustomException(CommonErrorCode.FORBIDDEN);
     }
 
-    // 출발 허브 기준 배송 목록 조회
     @Transactional(readOnly = true)
-    public List<GetDeliveryListResponse> getDeliveriesBySourceHub(UUID sourceHubId) {
+    public List<GetDeliveryListResponse> getDeliveriesBySourceHub(UUID sourceHubId, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(sourceHubId);
+
+        validateListPermission(userRole);
 
         return deliveryRepository.findAllBySourceHubIdAndDeletedAtIsNull(sourceHubId)
                 .stream()
@@ -158,11 +177,13 @@ public class DeliveryService {
                 .toList();
     }
 
-    // 도착 허브 기준 배송 목록 조회
     @Transactional(readOnly = true)
-    public List<GetDeliveryListResponse> getDeliveriesByDestHub(UUID destHubId) {
+    public List<GetDeliveryListResponse> getDeliveriesByDestHub(UUID destHubId, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(destHubId);
 
+        validateListPermission(userRole);
 
         return deliveryRepository.findAllByDestHubIdAndDeletedAtIsNull(destHubId)
                 .stream()
@@ -170,13 +191,16 @@ public class DeliveryService {
                 .toList();
     }
 
-    // 배송 경로 조회
     @Transactional(readOnly = true)
-    public List<GetDeliveryRouteResponse> getDeliveryRoutes(UUID deliveryId) {
+    public List<GetDeliveryRouteResponse> getDeliveryRoutes(UUID deliveryId, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(deliveryId);
 
         Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+
+        validateReadDeliveryPermission(delivery, userId, userRole);
 
         List<DeliveryRoute> routes = deliveryRouteRepository.findAllByDeliveryIdOrderBySequenceAsc(delivery.getId());
 
@@ -185,13 +209,16 @@ public class DeliveryService {
                 .toList();
     }
 
-    // 현재 진행 경로 확인
     @Transactional(readOnly = true)
-    public GetCurrentDeliveryRouteResponse getCurrentDeliveryRoute(UUID deliveryId) {
+    public GetCurrentDeliveryRouteResponse getCurrentDeliveryRoute(UUID deliveryId, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(deliveryId);
 
         Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+
+        validateReadDeliveryPermission(delivery, userId, userRole);
 
         List<DeliveryRoute> routes = deliveryRouteRepository
                 .findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(delivery.getId());
@@ -210,14 +237,17 @@ public class DeliveryService {
         );
     }
 
-    // 배송 정보 수정
     @Transactional
-    public void updateDelivery(UUID deliveryId, UpdateDeliveryRequest request) {
+    public void updateDelivery(UUID deliveryId, UpdateDeliveryRequest request, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(deliveryId);
         validateUpdateDeliveryRequest(request);
 
         Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+
+        validateUpdateDeliveryPermission(delivery, userId, userRole);
 
         delivery.updateInfo(
                 request.getDeliveryAddress(),
@@ -226,9 +256,10 @@ public class DeliveryService {
         );
     }
 
-    // 배송 상태 수정 todo: 포함어있지 않은 상태 입력시 오류
     @Transactional
-    public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus deliveryStatus) {
+    public void updateDeliveryStatus(UUID deliveryId, DeliveryStatus deliveryStatus, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(deliveryId);
 
         if (deliveryStatus == null) {
@@ -242,17 +273,22 @@ public class DeliveryService {
             throw new CustomException(DeliveryErrorCode.DELIVERY_ALREADY_DELETED);
         }
 
+        validateUpdateDeliveryPermission(delivery, userId, userRole);
+
         delivery.updateStatus(deliveryStatus);
     }
 
-//    // 배송 경로 상태 수정
     @Transactional
-    public void updateDeliveryRouteStatus(UUID deliveryRouteId, UpdateDeliveryRouteStatusRequest request) {
+    public void updateDeliveryRouteStatus(UUID deliveryRouteId, UpdateDeliveryRouteStatusRequest request, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(deliveryRouteId);
         validateUpdateDeliveryRouteStatusRequest(request);
 
         DeliveryRoute deliveryRoute = deliveryRouteRepository.findByIdAndDeletedAtIsNull(deliveryRouteId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_ROUTE_NOT_FOUND));
+
+        validateUpdateRoutePermission(deliveryRoute, userId, userRole);
 
         deliveryRoute.updateRouteProgress(
                 request.getDeliveryStatus(),
@@ -263,7 +299,6 @@ public class DeliveryService {
         updateDeliveryStatusByRoutes(deliveryRoute.getDeliveryId());
     }
 
-    //전체 배송 경로 상태 자동 수정
     private void updateDeliveryStatusByRoutes(UUID deliveryId) {
         List<DeliveryRoute> routes =
                 deliveryRouteRepository.findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(deliveryId);
@@ -284,8 +319,8 @@ public class DeliveryService {
         boolean hasInProgress = routes.stream()
                 .anyMatch(route ->
                         route.getDeliveryStatus() == DeliveryRouteStatus.IN_TRANSIT_HUB ||
-                        route.getDeliveryStatus() == DeliveryRouteStatus.ARRIVED_AT_DEST_HUB ||
-                        route.getDeliveryStatus() == DeliveryRouteStatus.OUT_FOR_DELIVERY
+                                route.getDeliveryStatus() == DeliveryRouteStatus.ARRIVED_AT_DEST_HUB ||
+                                route.getDeliveryStatus() == DeliveryRouteStatus.OUT_FOR_DELIVERY
                 );
 
         if (allDelivered) {
@@ -303,11 +338,13 @@ public class DeliveryService {
         }
     }
 
-    // 배송 삭제
     @Transactional
-    public void deleteDelivery(UUID deliveryId, UUID deletedBy) {
+    public void deleteDelivery(UUID deliveryId, UUID userId, String userRole) {
+        validateId(userId);
+        validateRole(userRole);
         validateId(deliveryId);
-        validateId(deletedBy);
+
+        validateDeletePermission(userRole);
 
         Delivery delivery = deliveryRepository.findByIdAndDeletedAtIsNull(deliveryId)
                 .orElseThrow(() -> new CustomException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
@@ -316,10 +353,10 @@ public class DeliveryService {
                 deliveryRouteRepository.findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(deliveryId);
 
         for (DeliveryRoute route : routes) {
-            route.delete(deletedBy);
+            route.delete(userId);
         }
 
-        delivery.delete(deletedBy);
+        delivery.delete(userId);
     }
 
     private void validateCreateDeliveryCommand(CreateDeliveryCommand command) {
@@ -358,5 +395,104 @@ public class DeliveryService {
         if (id == null) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
+    }
+
+    private void validateRole(String userRole) {
+        if (userRole == null || userRole.isBlank()) {
+            throw new CustomException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        try {
+            UserRole.valueOf(userRole);
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(CommonErrorCode.FORBIDDEN);
+        }
+    }
+
+    private void validateCreateDeliveryPermission(String userRole) {
+        if (isMaster(userRole) || isHubManager(userRole) || isSupplierManager(userRole)) {
+            return;
+        }
+        throw new CustomException(CommonErrorCode.FORBIDDEN);
+    }
+
+    private void validateListPermission(String userRole) {
+        if (isMaster(userRole) || isHubManager(userRole) || isSupplierManager(userRole)) {
+            return;
+        }
+        throw new CustomException(CommonErrorCode.FORBIDDEN);
+    }
+
+    private void validateDeletePermission(String userRole) {
+        if (isMaster(userRole)) {
+            return;
+        }
+        throw new CustomException(CommonErrorCode.FORBIDDEN);
+    }
+
+    private void validateReadDeliveryPermission(Delivery delivery, UUID userId, String userRole) {
+        if (isMaster(userRole) || isHubManager(userRole) || isSupplierManager(userRole)) {
+            return;
+        }
+
+        if (isDeliveryManager(userRole)) {
+            boolean isMyRoute = deliveryRouteRepository
+                    .findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(delivery.getId())
+                    .stream()
+                    .anyMatch(route -> userId.equals(route.getDeliveryManager()));
+
+            if (isMyRoute) {
+                return;
+            }
+        }
+
+        throw new CustomException(CommonErrorCode.FORBIDDEN);
+    }
+
+    private void validateUpdateDeliveryPermission(Delivery delivery, UUID userId, String userRole) {
+        if (isMaster(userRole) || isHubManager(userRole)) {
+            return;
+        }
+
+        if (isDeliveryManager(userRole)) {
+            boolean isMyRoute = deliveryRouteRepository
+                    .findAllByDeliveryIdAndDeletedAtIsNullOrderBySequenceAsc(delivery.getId())
+                    .stream()
+                    .anyMatch(route -> userId.equals(route.getDeliveryManager()));
+
+            if (isMyRoute) {
+                return;
+            }
+        }
+
+        throw new CustomException(CommonErrorCode.FORBIDDEN);
+    }
+
+    private void validateUpdateRoutePermission(DeliveryRoute deliveryRoute, UUID userId, String userRole) {
+        if (isMaster(userRole) || isHubManager(userRole)) {
+            return;
+        }
+
+        if (isDeliveryManager(userRole) && userId.equals(deliveryRoute.getDeliveryManager())) {
+            return;
+        }
+
+        throw new CustomException(CommonErrorCode.FORBIDDEN);
+    }
+
+    private boolean isMaster(String userRole) {
+        return UserRole.MASTER.name().equals(userRole);
+    }
+
+    private boolean isHubManager(String userRole) {
+        return UserRole.HUB_MANAGER.name().equals(userRole);
+    }
+
+    private boolean isDeliveryManager(String userRole) {
+        return UserRole.DELIVERY_MANAGER.name().equals(userRole);
+    }
+
+    private boolean isSupplierManager(String userRole) {
+        return UserRole.SUPPLIER_MANAGER.name().equals(userRole);
     }
 }
