@@ -107,7 +107,7 @@ public class HubService {
     }
 
     @Transactional
-    public void deleteHub(UUID hubId, Long userId) {
+    public void deleteHub(UUID hubId, UUID userId) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
 
