@@ -1,0 +1,39 @@
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+
+### Gradle ###
+.gradle
+build/
+**/bin/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/resources/*.properties
+!**/src/test/resources/*.properties
+**/src/main/resources/application-local.yml
+**/src/main/resources/application-*.local.yml
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+gen/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Spring Boot ###
+HELP.md
+.logs/
+*.log
+**/logs/
+
+### Environment Variables ###
+.env
+.env.local
+.env.*
+!.env.example
