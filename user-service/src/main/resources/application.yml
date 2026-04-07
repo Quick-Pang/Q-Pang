@@ -1,6 +1,10 @@
 spring:
   application:
     name: user-service
+  cloud:
+    openfeign:
+      micrometer:
+        enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/userservice
     username: postgres
@@ -19,13 +23,13 @@ spring:
         show_sql: true
     open-in-view: false
   
-  # Zipkin / Micrometer Tracing
+management:
   tracing:
     sampling:
       probability: 1.0
   zipkin:
     tracing:
-      endpoint: http://localhost:9411/api/v2/spans
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 # Eureka Client
 eureka:
@@ -43,3 +47,8 @@ springdoc:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false

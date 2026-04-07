@@ -6,6 +6,7 @@ plugins {
 
 ext {
     set('springCloudVersion', "2025.0.0")
+    set('springDocVersion', "2.8.16")
 }
 
 allprojects {
@@ -38,6 +39,9 @@ subprojects {
 
     dependencies {
         // 모든 모듈에서 공통으로 쓸 라이브러리
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+        runtimeOnly 'io.zipkin.reporter2:zipkin-reporter-brave'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -5,6 +5,7 @@ import com.qpang.userservice.application.dto.user.UserInfo;
 import com.qpang.userservice.application.service.AuthService;
 import com.qpang.userservice.application.service.UserService;
 import com.qpang.userservice.presentation.dto.auth.RoleUpdateRequest;
+import com.qpang.userservice.presentation.dto.user.UserIdResponse;
 import com.qpang.userservice.presentation.dto.user.UserResponse;
 import com.qpang.userservice.presentation.dto.user.UserUpdateRequest;
 import jakarta.validation.Valid;
@@ -44,6 +45,13 @@ public class UserController {
     public ResponseEntity<APIResponse<UserResponse>> getUser(@PathVariable UUID id) {
         UserInfo userInfo = userService.getUser(id);
         return ResponseEntity.ok(APIResponse.success(UserResponse.from(userInfo)));
+    }
+
+    // 3-1. username으로 userId 조회
+    @GetMapping("/by-username/{username}/id")
+    public ResponseEntity<APIResponse<UserIdResponse>> getUserIdByUsername(@PathVariable String username) {
+        UUID userId = userService.getUserIdByUsername(username);
+        return ResponseEntity.ok(APIResponse.success(UserIdResponse.from(userId)));
     }
 
     // 4. 정보 수정

@@ -11,11 +11,15 @@ import com.qpang.hub.domain.model.HubType;
 import com.qpang.hub.domain.repository.HubRepository;
 import com.qpang.hub.domain.repository.HubRouteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +34,14 @@ public class HubService {
     private final HubRouteRepository hubRouteRepository;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "hubList", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<HubResult> getAllHubs(Pageable pageable) {
         return hubRepository.findAll(pageable)
                 .map(HubResult::from);
     }
 
     @Transactional
+    @CacheEvict(value = {"hubList", "hubRouteList"}, allEntries = true)
     public HubResult createHub(HubCreateCommand command) {
 
         Hub centerHub = null;
@@ -71,6 +77,7 @@ public class HubService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "hubs", key = "#hubId")
     public HubResult getHubById(UUID hubId) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
@@ -78,6 +85,8 @@ public class HubService {
     }
 
     @Transactional
+    @CachePut(value = "hubs", key = "#hubId")
+    @CacheEvict(value = {"hubList", "hubRouteList"}, allEntries = true)
     public HubResult updateHub(UUID hubId, HubUpdateCommand command) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
@@ -126,6 +135,7 @@ public class HubService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    @CacheEvict(value = {"hubs", "hubList", "hubRouteList"}, allEntries = true)
     public void initHubData(Long userId, List<HubInitCommand> commands) {
         if (hubRepository.count() > 0) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
