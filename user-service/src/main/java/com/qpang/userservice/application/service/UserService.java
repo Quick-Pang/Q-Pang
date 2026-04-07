@@ -76,7 +76,7 @@ public class UserService {
      * [사용자 소프트 삭제]
      * BaseUserEntity의 delete 메서드에 위임하여 삭제 시간과 삭제자를 기록합니다.
      */
-    public void deleteUser(UUID id, Long deletedBy) {
+    public void deleteUser(UUID id, UUID deletedBy) {
         // 삭제는 실제 row 삭제가 아니라 soft delete 처리다.
         User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
