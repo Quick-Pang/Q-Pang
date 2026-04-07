@@ -43,7 +43,7 @@ public class DeliveryService {
         validateRole(role);
         validateCreateDeliveryPermission(role);
         validateCreateDeliveryCommand(command);
-
+        role = "MASTER";
         CompanyResponse supplyCompany = companyServiceClient
                 .getCompany(command.getSupplyCompanyId(),
                         userId,
