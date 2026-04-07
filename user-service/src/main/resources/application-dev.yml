@@ -1,0 +1,7 @@
+app:
+  seed:
+    master:
+      username: master
+      password: master1234
+      email: master@qpang.local
+      nickname: Master Admin

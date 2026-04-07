@@ -15,7 +15,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 
-@Configuration
+@Configuration("hubRedisConfig")
 @EnableCaching
 public class RedisConfig {
 

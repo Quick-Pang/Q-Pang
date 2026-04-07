@@ -6,9 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,6 +18,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class KakaoRouteService {
@@ -33,6 +36,7 @@ public class KakaoRouteService {
                 + "&priority=DISTANCE";
 
         URI uri = URI.create(url);
+        log.info("Kakao route request: origin={},{} destination={},{}", srcLon, srcLat, dstLon, dstLat);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "KakaoAK " + kakaoApiKey);
@@ -85,9 +89,14 @@ public class KakaoRouteService {
 
             return new RouteInfo(distanceKm, durationMin);
 
+        } catch (HttpStatusCodeException e) {
+            log.error("Kakao route API returned status {} body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new CustomException(CommonErrorCode.KAKAO_ROUTE_API_ERROR);
         } catch (ResourceAccessException e) {
+            log.error("Kakao route API connection failed: {}", e.getMessage());
             throw new CustomException(CommonErrorCode.KAKAO_ROUTE_API_ERROR);
         } catch (RestClientException e) {
+            log.error("Kakao route API call failed: {}", e.getMessage(), e);
             throw new CustomException(CommonErrorCode.KAKAO_ROUTE_API_ERROR);
         }
     }

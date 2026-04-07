@@ -1,0 +1,92 @@
+services:
+  postgres-user:
+    image: postgres:16
+    container_name: qpang-postgres-user
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: userservice
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+
+  postgres-order:
+    image: postgres:16
+    container_name: qpang-postgres-order
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: orderdb
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+
+  postgres-company:
+    image: postgres:16
+    container_name: qpang-postgres-company
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: companydb
+    volumes:
+      - postgres-company-data:/var/lib/postgresql/data
+
+  postgres-product:
+    image: postgres:16
+    container_name: qpang-postgres-product
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: productdb
+    volumes:
+      - postgres-product-data:/var/lib/postgresql/data
+
+  postgres-hub:
+    image: postgres:16
+    container_name: qpang-postgres-hub
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: hubdb
+    volumes:
+      - postgres-hub-data:/var/lib/postgresql/data
+
+  postgres-delivery:
+    image: postgres:16
+    container_name: qpang-postgres-delivery
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: deliverydb
+    volumes:
+      - postgres-delivery-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: qpang-redis
+    ports:
+      - "6379:6379"
+
+  zipkin:
+    image: openzipkin/zipkin:2
+    container_name: qpang-zipkin
+    ports:
+      - "9411:9411"
+
+volumes:
+  postgres-user-data:
+  postgres-order-data:
+  postgres-company-data:
+  postgres-product-data:
+  postgres-hub-data:
+  postgres-delivery-data:

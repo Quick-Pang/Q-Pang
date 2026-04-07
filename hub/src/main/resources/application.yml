@@ -2,9 +2,9 @@ spring:
   application:
     name: hub-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/qpang_db
+    url: jdbc:postgresql://localhost:5436/hubdb
     username: postgres
-    password: 1234
+    password: password
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -47,6 +47,10 @@ server:
 kakao:
   api:
     key: ${KAKAO_API_KEY}
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
 
 logging:
   pattern:

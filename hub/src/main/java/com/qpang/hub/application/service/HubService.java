@@ -3,6 +3,7 @@ package com.qpang.hub.application.service;
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
 import com.qpang.hub.application.dto.HubCreateCommand;
+import com.qpang.hub.application.dto.HubPageCache;
 import com.qpang.hub.application.dto.HubInitCommand;
 import com.qpang.hub.application.dto.HubResult;
 import com.qpang.hub.application.dto.HubUpdateCommand;
@@ -11,8 +12,8 @@ import com.qpang.hub.domain.model.HubType;
 import com.qpang.hub.domain.repository.HubRepository;
 import com.qpang.hub.domain.repository.HubRouteRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -34,14 +35,23 @@ public class HubService {
     private final HubRouteRepository hubRouteRepository;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "hubList", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<HubResult> getAllHubs(Pageable pageable) {
-        return hubRepository.findAll(pageable)
-                .map(HubResult::from);
+        HubPageCache cachedPage = getCachedHubPage(pageable);
+        return new PageImpl<>(cachedPage.content(), pageable, cachedPage.totalElements());
+    }
+
+    @Cacheable(value = "hubPageList", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
+    @Transactional(readOnly = true)
+    public HubPageCache getCachedHubPage(Pageable pageable) {
+        Page<Hub> hubs = hubRepository.findAll(pageable);
+        return new HubPageCache(
+                hubs.map(HubResult::from).getContent(),
+                hubs.getTotalElements()
+        );
     }
 
     @Transactional
-    @CacheEvict(value = {"hubList", "hubRouteList"}, allEntries = true)
+    @CacheEvict(value = {"hubPageList", "hubRoutePageList"}, allEntries = true)
     public HubResult createHub(HubCreateCommand command) {
 
         Hub centerHub = null;
@@ -86,7 +96,7 @@ public class HubService {
 
     @Transactional
     @CachePut(value = "hubs", key = "#hubId")
-    @CacheEvict(value = {"hubList", "hubRouteList"}, allEntries = true)
+    @CacheEvict(value = {"hubPageList", "hubRoutePageList"}, allEntries = true)
     public HubResult updateHub(UUID hubId, HubUpdateCommand command) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
@@ -135,7 +145,7 @@ public class HubService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    @CacheEvict(value = {"hubs", "hubList", "hubRouteList"}, allEntries = true)
+    @CacheEvict(value = {"hubs", "hubPageList", "hubRoutePageList"}, allEntries = true)
     public void initHubData(Long userId, List<HubInitCommand> commands) {
         if (hubRepository.count() > 0) {
             throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);

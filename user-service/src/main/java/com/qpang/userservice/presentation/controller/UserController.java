@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 
 import java.util.UUID;
 
@@ -27,7 +29,9 @@ public class UserController {
 
     // 1. 내 정보 조회 (인증 서버나 게이트웨이에서 X-User-Id 헤더를 통해 전달 가정)
     @GetMapping("/me")
-    public ResponseEntity<APIResponse<UserResponse>> getMyInfo(@RequestHeader("X-User-Id") UUID userId) {
+    public ResponseEntity<APIResponse<UserResponse>> getMyInfo(
+            @Parameter(name = "X-User-Id", in = ParameterIn.HEADER, required = true, description = "로그인한 사용자 UUID")
+            @RequestHeader("X-User-Id") UUID userId) {
         UserInfo userInfo = userService.getUser(userId);
         return ResponseEntity.ok(APIResponse.success(UserResponse.from(userInfo)));
     }

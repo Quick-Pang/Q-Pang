@@ -8,7 +8,8 @@ import com.qpang.deliverymanager.application.dto.DeliveryManagerUpdateCommand;
 import com.qpang.deliverymanager.domain.model.DeliveryManager;
 import com.qpang.deliverymanager.domain.model.DeliveryManagerType;
 import com.qpang.deliverymanager.domain.repository.DeliveryManagerRepository;
-import com.qpang.hub.domain.repository.HubRepository;
+import com.qpang.hub.api.client.HubClient;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,7 @@ import java.util.UUID;
 public class DeliveryManagerService {
 
     private final DeliveryManagerRepository deliveryManagerRepository;
-    private final HubRepository hubRepository;
+    private final HubClient hubClient;
 
     @Transactional(readOnly = true)
     public Page<DeliveryManagerResult> getAll(Pageable pageable) {
@@ -90,8 +91,11 @@ public class DeliveryManagerService {
                 throw new CustomException(CommonErrorCode.INVALID_INPUT_VALUE);
             }
 
-            hubRepository.findById(hubId)
-                    .orElseThrow(() -> new CustomException(CommonErrorCode.NOT_FOUND));
+            try {
+                hubClient.getHubById(hubId);
+            } catch (FeignException.NotFound e) {
+                throw new CustomException(CommonErrorCode.NOT_FOUND);
+            }
         }
     }
 
