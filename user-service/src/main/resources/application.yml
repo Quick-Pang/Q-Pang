@@ -32,10 +32,13 @@ management:
       endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 # Eureka Client
+server:
+  port: 8084
+
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:9090/eureka/
 
 # Swagger / OpenAPI
 springdoc:
