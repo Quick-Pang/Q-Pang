@@ -31,6 +31,7 @@ HELP.md
 .logs/
 *.log
 **/logs/
+postgres_data/
 
 ### Environment Variables ###
 .env

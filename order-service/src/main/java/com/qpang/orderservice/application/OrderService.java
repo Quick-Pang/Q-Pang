@@ -54,7 +54,7 @@ public class OrderService {
         }
     }
 
-    public OrderResponse createOrderFromRequest(CreateOrderRequest req, UUID userId) {
+    public OrderResponse createOrderFromRequest(CreateOrderRequest req, UUID userId, String userRole) {
         List<CreateOrderItemCommand> lines =
                 req.items().stream().map(i -> new CreateOrderItemCommand(i.productId(), i.quantity())).toList();
 
@@ -74,7 +74,9 @@ public class OrderService {
                 new DeliveryClient.CreateDeliveryRequest(
                         order.getId(),
                         order.getSupplyCompanyId(),
-                        order.getRequestCompanyId()));
+                        order.getRequestCompanyId()),
+                userId,
+                userRole);
         order.assignDelivery(deliveryRes.deliveryId());
         orderRepository.save(order);
         return OrderResponse.from(order);

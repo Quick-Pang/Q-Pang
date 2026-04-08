@@ -2,6 +2,7 @@ package com.qpang.hub.application.service;
 
 import com.qpang.common.exception.CommonErrorCode;
 import com.qpang.common.exception.CustomException;
+import com.qpang.hub.application.dto.HubRoutePageCache;
 import com.qpang.hub.application.dto.HubRouteResponseDto;
 import com.qpang.hub.domain.model.Hub;
 import com.qpang.hub.domain.model.HubRoute;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.ArrayList;
@@ -26,14 +28,21 @@ public class HubRouteService {
     private final HubRouteRepository hubRouteRepository;
     private final HubRepository hubRepository;
 
+    @Transactional(readOnly = true)
+    public Page<HubRouteResponseDto> getAllRoutes(Pageable pageable) {
+        HubRoutePageCache cachedPage = getCachedHubRoutePage(pageable);
+        return new PageImpl<>(cachedPage.content(), pageable, cachedPage.totalElements());
+    }
+
     @Cacheable(
-            value = "hubRouteList",
+            value = "hubRoutePageList",
             key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()"
     )
     @Transactional(readOnly = true)
-    public Page<HubRouteResponseDto> getAllRoutes(Pageable pageable) {
-        return hubRouteRepository.findAll(pageable)
+    public HubRoutePageCache getCachedHubRoutePage(Pageable pageable) {
+        Page<HubRouteResponseDto> routes = hubRouteRepository.findAll(pageable)
                 .map(HubRouteResponseDto::from);
+        return new HubRoutePageCache(routes.getContent(), routes.getTotalElements());
     }
 
     @Transactional(readOnly = true)

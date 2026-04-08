@@ -37,8 +37,9 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse create(
             @RequestBody @Valid CreateOrderRequest request,
-            @RequestHeader("X-User-Id") UUID userId) {
-        return orderService.createOrderFromRequest(request, userId);
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String userRole) {
+        return orderService.createOrderFromRequest(request, userId, userRole);
     }
 
     @GetMapping("/{orderId}")

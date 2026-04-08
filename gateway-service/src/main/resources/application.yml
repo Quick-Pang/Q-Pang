@@ -18,9 +18,9 @@ spring:
 
         # delivery
         - id: delivery
-          uri: lb://delivery
+          uri: lb://delivery-manager
           predicates:
-            - Path=/deliveries/**
+            - Path=/api/delivery-managers/**
 
         # product-service
         - id: product-service
@@ -75,4 +75,4 @@ logging:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_BASE64}
+    key: ${JWT_SECRET_KEY}

@@ -3,14 +3,14 @@ spring:
     name: order-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/qpang_db
+    url: jdbc:postgresql://localhost:5433/orderdb
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true

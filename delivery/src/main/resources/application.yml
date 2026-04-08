@@ -3,9 +3,9 @@ spring:
     name: delivery-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/qpang_db
-    username: postgres
-    password: 1234
+    url: jdbc:postgresql://localhost:5437/deliverydb
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -24,9 +24,28 @@ eureka:
     service-url:
       defaultZone: http://localhost:9090/eureka/
 
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
 slack:
   webhook-url: test
 
 jwt:
   secret:
-    key: ZGVsaXZlcnktc2VjcmV0LWtleS1kZWxpdmVyeS1zZWNyZXQta2V5LWRlbGl2ZXJ5
+    key: ${JWT_SECRET_KEY}
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false

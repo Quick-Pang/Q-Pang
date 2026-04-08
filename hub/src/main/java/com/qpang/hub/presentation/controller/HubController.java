@@ -57,6 +57,7 @@ public class HubController {
         return ResponseEntity.noContent().build();
     }
 
+
     @PostMapping("/init")
     public ResponseEntity<String> initHubData(
             @RequestHeader("X-User-Id") Long userId,

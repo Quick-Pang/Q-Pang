@@ -1,6 +1,18 @@
 spring:
   application:
     name: delivery-manager
+  datasource:
+    url: jdbc:postgresql://localhost:5437/deliverydb
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
 management:
   tracing:
@@ -15,6 +27,14 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+
+server:
+  port: 8086
 
 logging:
   pattern:
